@@ -4,73 +4,59 @@ from typing import Dict, Optional
 def generate_eva_briefing(stats: Dict, api_key: Optional[str] = None) -> str:
     """
     Generates a NASA Flight Director EVA Hazard Briefing using Google Gemini API.
-    Falls back to a structured telemetry report if API key is missing or offline.
+    Falls back to a structured telemetry report if API key is missing, invalid,
+    rate-limited (429), or offline.
     """
     key = api_key or os.environ.get("GEMINI_API_KEY")
     
     if key and key.strip():
-        # Try google-genai SDK
+        # Clean list of active Google Gemini model identifiers
+        candidate_models = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-flash-latest']
+        
+        prompt = f"""
+You are the NASA Mission Flight Director for a Mars surface operation (Jezero Crater EVA).
+Analyze the following route metrics and provide a concise, highly technical EVA safety briefing.
+Include required suit consumables, specific traversal risks, and operational Go/No-Go checkpoints.
+Do not use conversational filler. Format with clear Markdown headings and bullet points.
+
+Route Metrics:
+- Total Distance: {stats.get('distance')} meters
+- Maximum Incline: {stats.get('max_slope')} degrees
+- Average Slope: {stats.get('avg_slope', 'N/A')} degrees
+- Total Elevation Gain: {stats.get('elevation_gain', 'N/A')} meters
+- Total Elevation Loss: {stats.get('elevation_loss', 'N/A')} meters
+- Estimated Duration: {stats.get('duration')} hours
+- Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
+"""
+        # 1. Primary: google-genai SDK
         try:
             from google import genai
             client = genai.Client(api_key=key.strip())
             
-            prompt = f"""
-You are the NASA Mission Flight Director for a Mars surface operation (Jezero Crater EVA).
-Analyze the following route metrics and provide a concise, highly technical EVA safety briefing.
-Include required suit consumables, specific traversal risks, and operational Go/No-Go checkpoints.
-Do not use conversational filler. Format with clear Markdown headings and bullet points.
-
-Route Metrics:
-- Total Distance: {stats.get('distance')} meters
-- Maximum Incline: {stats.get('max_slope')} degrees
-- Average Slope: {stats.get('avg_slope', 'N/A')} degrees
-- Total Elevation Gain: {stats.get('elevation_gain', 'N/A')} meters
-- Total Elevation Loss: {stats.get('elevation_loss', 'N/A')} meters
-- Estimated Duration: {stats.get('duration')} hours
-- Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
-            """
-            for model_name in ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest']:
+            for model_name in candidate_models:
                 try:
                     response = client.models.generate_content(
                         model=model_name,
-                        contents=prompt,
-                        config={'automatic_function_calling': {'disable': True}}
+                        contents=prompt
                     )
                     if response and response.text:
                         return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
-                except Exception:
-                    try:
-                        response = client.models.generate_content(
-                            model=model_name,
-                            contents=prompt
-                        )
-                        if response and response.text:
-                            return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
-                    except Exception:
+                except Exception as model_err:
+                    err_msg = str(model_err)
+                    if "404" in err_msg or "NOT_FOUND" in err_msg:
+                        continue  # Try next valid model name
+                    elif "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                        break  # Quota reached for today, fall back to offline report
+                    else:
                         continue
         except Exception:
             pass
 
-        # Try google.generativeai SDK fallback
+        # 2. Secondary fallback: legacy google.generativeai SDK
         try:
             import google.generativeai as genai_legacy
             genai_legacy.configure(api_key=key.strip())
-            prompt = f"""
-You are the NASA Mission Flight Director for a Mars surface operation (Jezero Crater EVA).
-Analyze the following route metrics and provide a concise, highly technical EVA safety briefing.
-Include required suit consumables, specific traversal risks, and operational Go/No-Go checkpoints.
-Do not use conversational filler. Format with clear Markdown headings and bullet points.
-
-Route Metrics:
-- Total Distance: {stats.get('distance')} meters
-- Maximum Incline: {stats.get('max_slope')} degrees
-- Average Slope: {stats.get('avg_slope', 'N/A')} degrees
-- Total Elevation Gain: {stats.get('elevation_gain', 'N/A')} meters
-- Total Elevation Loss: {stats.get('elevation_loss', 'N/A')} meters
-- Estimated Duration: {stats.get('duration')} hours
-- Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
-            """
-            for m_name in ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']:
+            for m_name in ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-1.5-flash']:
                 try:
                     m = genai_legacy.GenerativeModel(m_name)
                     res = m.generate_content(prompt)
@@ -81,8 +67,7 @@ Route Metrics:
         except Exception:
             pass
 
-
-    # Structured offline briefing fallback
+    # 3. Structured offline briefing fallback (Triggered when offline, unauthenticated, or rate-limited)
     dist_m = stats.get('distance', 0)
     duration_h = stats.get('duration', 0)
     max_slope = stats.get('max_slope', 0)
@@ -124,4 +109,3 @@ Route Metrics:
 ---
 *Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***
 """
-
