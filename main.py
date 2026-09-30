@@ -74,6 +74,14 @@ async def read_index():
         raise HTTPException(status_code=404, detail="index.html not found in static folder.")
     return FileResponse(index_path)
 
+@app.get("/favicon.ico")
+async def favicon():
+    """Returns a Mars red planet SVG favicon."""
+    svg_content = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#ff4500"/><path d="M20 50 Q50 30 80 50 Q50 70 20 50" fill="none" stroke="#ffaa88" stroke-width="4"/><circle cx="35" cy="35" r="8" fill="#cc3300"/><circle cx="65" cy="60" r="12" fill="#cc3300"/></svg>'
+    from fastapi.responses import Response
+    return Response(content=svg_content, media_type="image/svg+xml")
+
+
 
 @app.get("/api/presets")
 async def get_presets():
