@@ -1,0 +1,23 @@
+# Environment variables & secrets
+.env
+
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

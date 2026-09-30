@@ -1,0 +1,27 @@
+### 🚀 NASA EVA MISSION BRIEFING & TELEMETRY
+
+**FLIGHT DIRECTOR DIRECTIVE:** EVA-JEZERO-3420
+
+---
+
+#### 1. Suit Consumable Budget (xEMU PLSS)
+* **Primary O2 Allocation:** 75.9 Liters (120% margin factored)
+* **PLSS Battery Reserve:** 0.52 kWh
+* **LCVG Cooling Water:** 0.4 kg
+* **Emergency Reserve Margin:** +60 minutes abort buffer
+
+---
+
+#### 2. Terrain & Traverse Hazards
+* **Maximum Slope Angle:** `14.2°` (⚠️ HIGH INCLINE - High slip hazard)
+* **Elevation Gain/Loss:** `+145.0m / -85.0m`
+* **Geological Hazards Avoided:** `12 steep crater walls / unstable regolith zones`
+* **Surface Matrix:** Basaltic scree, fine dust mantle, vesicular basalt boulders.
+
+---
+
+#### 3. Operational Protocols
+1. **Checkpoint Alpha (25% Traverse):** Perform mandatory glove and pressure suit seal check.
+2. **Dust Abatement:** Limit boot speed near regolith drifts to preserve visor optics.
+3. **RF Line-of-Sight:** Direct X-band link to Mars Reconnaissance Orbiter (MRO) / Perseverance Relay.
+4. **Abort Criteria:** Abort EVA immediately if O2 pressure drops below 4.2 psi or slope incline exceeds 15°.
