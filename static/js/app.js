@@ -39,6 +39,55 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('exportBriefingBtn').addEventListener('click', exportBriefing);
 });
 
+// Modern Glassmorphic Toast Notification System
+function showToast(message, type = 'info', title = 'MISSION CONTROL') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg shadow-2xl backdrop-blur-md border transition-all duration-300 transform translate-x-10 opacity-0 bg-mars-card/95 text-xs text-gray-200`;
+
+    let iconClass = 'fa-info-circle text-mars-neon';
+    let borderColor = 'border-mars-neon/40';
+
+    if (type === 'success') {
+        iconClass = 'fa-circle-check text-green-400';
+        borderColor = 'border-green-500/40';
+    } else if (type === 'warning') {
+        iconClass = 'fa-triangle-exclamation text-yellow-400';
+        borderColor = 'border-yellow-500/40';
+    } else if (type === 'error') {
+        iconClass = 'fa-circle-xmark text-red-400';
+        borderColor = 'border-red-500/40';
+    }
+
+    toast.classList.add(borderColor);
+
+    toast.innerHTML = `
+        <div class="mt-0.5 text-base">
+            <i class="fa-solid ${iconClass}"></i>
+        </div>
+        <div class="flex-1">
+            <div class="font-bold text-gray-100 font-mono text-[11px] uppercase tracking-wider mb-0.5">${title}</div>
+            <div class="text-gray-300 leading-snug">${message}</div>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-white transition ml-1 text-sm">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-x-10', 'opacity-0');
+    });
+
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-10');
+        setTimeout(() => toast.remove(), 300);
+    }, 4500);
+}
+
 // 1. Initialize Leaflet Map
 function initMap() {
     // Centered at Jezero Crater (18.4447 N, 77.4508 E)
@@ -70,13 +119,14 @@ function initMap() {
             document.getElementById('startLat').value = lat;
             document.getElementById('startLon').value = lon;
             mapPickState = 'end';
-            alert(`Start point set to (${lat}, ${lon}). Click next point on map to set Destination.`);
+            showToast(`Start point set to (${lat}, ${lon}). Click next point on map to set Destination.`, 'info', 'START WAYPOINT SET');
         } else {
             document.getElementById('endLat').value = lat;
             document.getElementById('endLon').value = lon;
             mapPickState = 'start';
             isMapPickMode = false;
             document.getElementById('mapPickBtn').classList.remove('text-yellow-400');
+            showToast(`Destination set to (${lat}, ${lon}). Click COMPUTE ROUTE to begin.`, 'success', 'DESTINATION SET');
         }
         updateMapMarkersFromInputs();
     });
@@ -86,8 +136,9 @@ function toggleMapPickMode() {
     isMapPickMode = true;
     mapPickState = 'start';
     document.getElementById('mapPickBtn').classList.add('text-yellow-400');
-    alert("Click anywhere on the map to set the START location, then click again to set DESTINATION.");
+    showToast("Click anywhere on map to set START location, then click again for DESTINATION.", "info", "MAP SELECTION ACTIVE");
 }
+
 
 function updateMapMarkersFromInputs() {
     const sLat = parseFloat(document.getElementById('startLat').value);
@@ -205,19 +256,21 @@ async function computeRoute() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(`Error: ${data.detail || 'Failed to compute route'}`);
+            showToast(data.detail || 'Failed to compute route', 'error', 'PATHFINDING FAILURE');
             return;
         }
 
         renderRoute(data.route_data, data.path_stats, data.briefing);
         loadCachedRoutes();
+        showToast("Optimal EVA route & NASA AI briefing calculated!", "success", "ROUTE COMPUTED");
     } catch (err) {
-        alert(`Network connection error: ${err.message}`);
+        showToast(`Network connection error: ${err.message}`, 'error', 'TELEMETRY FAILURE');
     } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-rocket"></i> COMPUTE OPTIMAL EVA ROUTE`;
     }
 }
+
 
 // 4. Render Route, Metrics & Profile Chart
 function renderRoute(routeData, stats, briefingText) {
@@ -363,9 +416,10 @@ async function loadCachedRoutes() {
 // 7. Export Briefing Markdown File
 function exportBriefing() {
     if (!currentBriefingText) {
-        alert("No briefing to export. Compute a route first.");
+        showToast("No briefing available to export. Please compute a route first.", "warning", "EXPORT BRIEFING");
         return;
     }
+
     const blob = new Blob([currentBriefingText], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
