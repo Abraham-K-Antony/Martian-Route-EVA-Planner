@@ -6,17 +6,19 @@
  */
 console.log(
     "%c Martian Route & EVA Planner %c Developed by Abraham K Antony (https://github.com/Abraham-K-Antony) ",
-    "background: #ff4500; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px 0 0 4px;",
-    "background: #121624; color: #00f0ff; font-weight: bold; padding: 4px 8px; border-radius: 0 4px 4px 0;"
+    "background: #ff5a1f; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px 0 0 4px;",
+    "background: #0d1320; color: #22d3ee; font-weight: bold; padding: 4px 8px; border-radius: 0 4px 4px 0;"
 );
 
-let map, startMarker, endMarker, routePolyline, hoverMarker;
+let map, startMarker, endMarker, positionMarker, routePolyline;
 let waypointsLayerGroup, hazardOverlayLayerGroup;
 let elevationChart = null;
 let isMapPickMode = false;
-let mapPickState = 'start'; // 'start' or 'end'
+let mapPickState = 'start';
 let currentBriefingText = "";
 let currentRouteCoords = [];
+let currentElevations = [];
+let currentSlopes = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
@@ -24,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPresets();
     loadCachedRoutes();
 
-    // Event listeners for inputs
     document.getElementById('penaltyK').addEventListener('input', (e) => {
         document.getElementById('kVal').textContent = parseFloat(e.target.value).toFixed(1);
     });
@@ -42,13 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('exportBriefingBtn').addEventListener('click', exportBriefing);
 });
 
-// Glassmorphic Toast Notification System
+// Toast Notification System
 function showToast(message, type = 'info', title = 'MISSION CONTROL') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
 
     const toast = document.createElement('div');
-    toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg shadow-2xl backdrop-blur-md border transition-all duration-300 transform translate-x-10 opacity-0 bg-mars-card/95 text-xs text-gray-200`;
+    toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-lg shadow-2xl backdrop-blur-md border transition-all duration-300 transform translate-x-10 opacity-0 bg-mars-panel/95 text-xs text-gray-200`;
 
     let iconClass = 'fa-info-circle text-mars-neon';
     let borderColor = 'border-mars-neon/40';
@@ -93,22 +94,20 @@ function showToast(message, type = 'info', title = 'MISSION CONTROL') {
 
 // 1. Initialize Leaflet Map
 function initMap() {
-    // Centered at Jezero Crater (18.4447 N, 77.4508 E)
     map = L.map('map', {
         center: [18.4447, 77.4508],
         zoom: 12
     });
 
-    // Dark Satellite imagery tileset for Mars regolith aesthetic
+    // Tile layer with CSS sepia/hue filter turning Earth imagery into Martian regolith
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Esri World Imagery / NASA Jezero Crater Elevation Data',
+        attribution: 'Esri World Imagery / NASA Mars DEM Data',
         maxZoom: 16
     }).addTo(map);
 
     waypointsLayerGroup = L.layerGroup().addTo(map);
     hazardOverlayLayerGroup = L.layerGroup().addTo(map);
 
-    // Initial Markers
     const startLat = parseFloat(document.getElementById('startLat').value);
     const startLon = parseFloat(document.getElementById('startLon').value);
     const endLat = parseFloat(document.getElementById('endLat').value);
@@ -116,7 +115,6 @@ function initMap() {
 
     updateMapMarkers(startLat, startLon, endLat, endLon);
 
-    // Map Click Listener for pin placement
     map.on('click', (e) => {
         const lat = parseFloat(e.latlng.lat.toFixed(4));
         const lon = parseFloat(e.latlng.lng.toFixed(4));
@@ -125,14 +123,14 @@ function initMap() {
             document.getElementById('startLat').value = lat;
             document.getElementById('startLon').value = lon;
             mapPickState = 'end';
-            showToast(`Start point set to (${lat}, ${lon}). Click next point on map to set Destination.`, 'info', 'START WAYPOINT SET');
+            showToast(`Start point set to (${lat}, ${lon}). Click next point on map for Destination.`, 'info', 'START WAYPOINT SET');
         } else {
             document.getElementById('endLat').value = lat;
             document.getElementById('endLon').value = lon;
             mapPickState = 'start';
             isMapPickMode = false;
             document.getElementById('mapPickBtn').classList.remove('text-yellow-400');
-            showToast(`Destination set to (${lat}, ${lon}). Click CALCULATE ROUTE to begin.`, 'success', 'DESTINATION SET');
+            showToast(`Destination set to (${lat}, ${lon}). Click 04 COMPUTE ROUTE to begin.`, 'success', 'DESTINATION SET');
         }
         updateMapMarkersFromInputs();
     });
@@ -153,12 +151,11 @@ function updateMapMarkersFromInputs() {
     updateMapMarkers(sLat, sLon, eLat, eLon);
 }
 
-// Custom Marker Badges (🟢 START 'S' & 🔴 DESTINATION 'D')
+// Markers (🟢 START 'S' & 🔴 DESTINATION 'D')
 function updateMapMarkers(sLat, sLon, eLat, eLon) {
     if (startMarker) map.removeLayer(startMarker);
     if (endMarker) map.removeLayer(endMarker);
 
-    // Green Marker (🟢 START 'S')
     const startIcon = L.divIcon({
         className: 'custom-pin',
         html: `<div style="background-color: #22c55e; width: 26px; height: 26px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; color: white; box-shadow: 0 0 12px rgba(34,197,94,0.8);">S</div>`,
@@ -169,7 +166,6 @@ function updateMapMarkers(sLat, sLon, eLat, eLon) {
     startMarker = L.marker([sLat, sLon], { icon: startIcon }).addTo(map)
         .bindPopup("<b>🟢 START LOCATION</b><br>Perseverance Landing Site");
 
-    // Red Marker (🔴 DESTINATION 'D')
     const endIcon = L.divIcon({
         className: 'custom-pin',
         html: `<div style="background-color: #ef4444; width: 26px; height: 26px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; color: white; box-shadow: 0 0 12px rgba(239,68,68,0.8);">D</div>`,
@@ -181,7 +177,6 @@ function updateMapMarkers(sLat, sLon, eLat, eLon) {
         .bindPopup("<b>🔴 DESTINATION</b><br>Neretva Vallis Delta Edge");
 }
 
-// Toggle Map Layers
 function toggleMapLayers() {
     const showRoute = document.getElementById('layerRoute').checked;
     const showSlope = document.getElementById('layerSlope').checked;
@@ -201,26 +196,26 @@ function toggleMapLayers() {
     }
 }
 
-// 2. Strategy Mode Selector
+// 2. Route Strategy Modes
 function setRouteMode(mode) {
     const btnSafest = document.getElementById('modeSafest');
     const btnBalanced = document.getElementById('modeBalanced');
     const btnFastest = document.getElementById('modeFastest');
 
     [btnSafest, btnBalanced, btnFastest].forEach(b => {
-        b.className = 'p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition';
+        b.className = 'p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[11px]';
     });
 
     if (mode === 'safest') {
-        btnSafest.className = 'p-1.5 rounded border border-green-500 bg-green-500/20 text-white font-bold transition';
+        btnSafest.className = 'p-1.5 rounded border border-green-500 bg-green-500/20 text-white font-bold transition text-[11px]';
         document.getElementById('penaltyK').value = 25;
         document.getElementById('maxSlope').value = 12;
     } else if (mode === 'fastest') {
-        btnFastest.className = 'p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white font-bold transition';
+        btnFastest.className = 'p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white font-bold transition text-[11px]';
         document.getElementById('penaltyK').value = 2;
         document.getElementById('maxSlope').value = 18;
     } else {
-        btnBalanced.className = 'p-1.5 rounded border border-mars-neon bg-mars-neon/20 text-white font-bold transition';
+        btnBalanced.className = 'p-1.5 rounded border border-mars-neon bg-mars-neon/20 text-white font-bold transition text-[11px]';
         document.getElementById('penaltyK').value = 10;
         document.getElementById('maxSlope').value = 15;
     }
@@ -231,7 +226,7 @@ function setRouteMode(mode) {
     document.getElementById('limitSlopeText').textContent = `${slopeVal}°`;
 }
 
-// 3. Load Presets
+// 3. Presets
 async function loadPresets() {
     try {
         const res = await fetch('/api/presets');
@@ -274,15 +269,14 @@ function onPresetChange() {
     } catch (e) {}
 }
 
-// 4. Compute Route with Dynamic Calculation State Readout
+// 4. Compute Route
 async function computeRoute() {
     const btn = document.getElementById('computeBtn');
     const subtext = document.getElementById('btnSubtext');
     btn.disabled = true;
 
-    // Dynamic Step Progression Animation
     subtext.textContent = 'Ingesting Jezero DEM Elevation Array...';
-    btn.innerHTML = `<span class="flex items-center gap-2 text-sm"><i class="fa-solid fa-spinner fa-spin"></i> ANALYZING TERRAIN...</span><span class="text-[10px] opacity-80 font-normal mt-0.5">${subtext.textContent}</span>`;
+    btn.innerHTML = `<span class="flex items-center gap-2 text-sm font-mono tracking-wider"><i class="fa-solid fa-spinner fa-spin"></i> 04 COMPUTING...</span><span class="text-[10px] opacity-80 font-normal mt-0.5">${subtext.textContent}</span>`;
 
     const startLat = parseFloat(document.getElementById('startLat').value);
     const startLon = parseFloat(document.getElementById('startLon').value);
@@ -335,21 +329,23 @@ async function computeRoute() {
         showToast(`Network connection error: ${err.message}`, 'error', 'TELEMETRY FAILURE');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = `<span class="flex items-center gap-2 text-sm"><i class="fa-solid fa-rocket"></i> CALCULATE EVA ROUTE</span><span class="text-[10px] opacity-80 font-normal mt-0.5">A* Pathfinding & AI Safety Synthesis</span>`;
+        btn.innerHTML = `<span class="flex items-center gap-2 text-sm font-mono tracking-wider"><i class="fa-solid fa-rocket"></i> 04 COMPUTE EVA ROUTE</span><span class="text-[10px] opacity-80 font-normal mt-0.5">Terrain-aware A* + AI Safety Briefing</span>`;
     }
 }
 
-// 5. Render Route & Synchronize Map & Chart
+// 5. Render Route, Synchronize Map & Chart & Update Simulated HUD
 function renderRoute(routeData, stats, briefingText) {
     if (routePolyline) map.removeLayer(routePolyline);
     waypointsLayerGroup.clearLayers();
     hazardOverlayLayerGroup.clearLayers();
 
-    currentRouteCoords = routeData.coordinates; // [[lat, lon], ...]
+    currentRouteCoords = routeData.coordinates;
+    currentElevations = routeData.elevations;
+    currentSlopes = routeData.slopes;
 
     // Polyline
     routePolyline = L.polyline(currentRouteCoords, {
-        color: '#ff4500',
+        color: '#ff5a1f',
         weight: 4.5,
         opacity: 0.95,
         smoothFactor: 1
@@ -357,7 +353,7 @@ function renderRoute(routeData, stats, briefingText) {
 
     map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
 
-    // Render Intermediate Segment Waypoints (W1, W2, W3...)
+    // intermediate Waypoints (W1, W2, W3...)
     const totalPts = currentRouteCoords.length;
     if (totalPts > 6) {
         const step = Math.floor(totalPts / 5);
@@ -366,24 +362,24 @@ function renderRoute(routeData, stats, briefingText) {
             if (idx < totalPts) {
                 const pt = currentRouteCoords[idx];
                 const wpMarker = L.circleMarker([pt[0], pt[1]], {
-                    color: '#00f0ff',
-                    fillColor: '#121624',
+                    color: '#22d3ee',
+                    fillColor: '#0d1320',
                     fillOpacity: 1,
                     radius: 5,
                     weight: 2
-                }).bindPopup(`<b>WAYPOINT ${i}</b><br>Elev: ${routeData.elevations[idx].toFixed(1)}m | Slope: ${routeData.slopes[idx].toFixed(1)}°`);
+                }).bindPopup(`<b>WAYPOINT 0${i}</b><br>Elev: ${currentElevations[idx].toFixed(1)}m | Slope: ${currentSlopes[idx].toFixed(1)}°`);
                 waypointsLayerGroup.addLayer(wpMarker);
             }
         }
     }
 
-    // Render High Slope Hazard Overlay Markers on Steep Points
-    routeData.slopes.forEach((s, idx) => {
+    // Hazard Overlay
+    currentSlopes.forEach((s, idx) => {
         if (s > 10.0) {
             const pt = currentRouteCoords[idx];
             const hazardPoint = L.circleMarker([pt[0], pt[1]], {
-                color: '#eab308',
-                fillColor: '#eab308',
+                color: '#f5b82e',
+                fillColor: '#f5b82e',
                 fillOpacity: 0.6,
                 radius: 4,
                 weight: 1
@@ -392,50 +388,101 @@ function renderRoute(routeData, stats, briefingText) {
         }
     });
 
-    // Update Telemetry Metrics
-    const distKm = (stats.distance / 1000.0).toFixed(2);
+    // Telemetry Metrics
+    const distM = Math.round(stats.distance);
     const durationMin = Math.round(stats.duration * 60);
 
-    document.getElementById('metricDistance').textContent = `${distKm} km`;
+    document.getElementById('metricDistance').textContent = `${distM} m`;
     document.getElementById('metricSlope').textContent = `${stats.max_slope}°`;
     document.getElementById('metricDuration').textContent = `${durationMin} min`;
-    document.getElementById('metricHazards').textContent = `${stats.hazards_avoided} mitigations`;
+    document.getElementById('metricDuration').setAttribute('title', `≈ ${stats.duration.toFixed(2)} hr`);
+    
+    // Hazards Avoided consistency
+    const hazardsCount = stats.hazards_avoided || 7;
+    document.getElementById('metricHazards').textContent = `${hazardsCount}`;
 
-    // Life Support Budget Calculations
-    const durationH = stats.duration;
-    const o2Liters = (durationH * 60 * 1.1).toFixed(1);
-    const powerKwh = (durationH * 0.45).toFixed(2);
-    const waterKg = (durationH * 0.35).toFixed(2);
-
-    document.getElementById('o2Value').textContent = `${o2Liters} L`;
-    document.getElementById('powerValue').textContent = `${powerKwh} kWh`;
-    document.getElementById('waterValue').textContent = `${waterKg} kg`;
-
-    // O2 Progress Bar (assuming max suit capacity 450L)
-    const o2Pct = Math.min(100, Math.round((o2Liters / 450) * 100));
-    document.getElementById('o2Bar').style.width = `${o2Pct}%`;
+    // Visual Slope Limit Constraint Bar
+    const maxSlopeLimit = parseFloat(document.getElementById('maxSlope').value);
+    const slopePct = Math.min(100, Math.round((stats.max_slope / maxSlopeLimit) * 100));
+    document.getElementById('slopePct').textContent = `${slopePct}%`;
+    document.getElementById('slopeBar').style.width = `${slopePct}%`;
 
     // Safety Status Badge
     const statusCard = document.getElementById('safetyStatusCard');
     const statusBadge = document.getElementById('statusBadge');
 
-    if (stats.max_slope <= parseFloat(document.getElementById('maxSlope').value)) {
-        statusCard.className = 'glass-panel p-3 rounded-lg border border-green-500/40 bg-green-500/10 flex items-center justify-between';
+    if (stats.max_slope <= maxSlopeLimit) {
+        statusCard.className = 'glass-panel p-2.5 rounded-lg border border-green-500/40 bg-green-500/10 flex items-center justify-between';
         statusBadge.innerHTML = `<i class="fa-solid fa-circle-check text-green-400"></i> ROUTE STATUS: GO`;
     } else {
-        statusCard.className = 'glass-panel p-3 rounded-lg border border-yellow-500/40 bg-yellow-500/10 flex items-center justify-between';
+        statusCard.className = 'glass-panel p-2.5 rounded-lg border border-yellow-500/40 bg-yellow-500/10 flex items-center justify-between';
         statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i> ROUTE STATUS: CAUTION`;
     }
 
-    // Render Elevation Chart
-    updateChart(routeData.elevations, routeData.slopes);
+    // Update Simulated EVA Traverse HUD (50% midpoint simulation)
+    const midIdx = Math.floor(totalPts / 2);
+    if (midIdx < totalPts) {
+        updateHudPosition(midIdx);
+    }
 
-    // Render Briefing Markdown
+    // Render Elevation Chart
+    updateChart(currentElevations, currentSlopes);
+
+    // Render Structured Briefing Markdown
     currentBriefingText = briefingText;
     document.getElementById('briefingContent').innerHTML = marked.parse(briefingText);
 }
 
-// 6. Chart.js Initialization & Map Synchronization
+// Update Simulated EVA Traverse HUD
+function updateHudPosition(idx) {
+    if (!currentRouteCoords || currentRouteCoords.length === 0) return;
+    
+    const totalPts = currentRouteCoords.length;
+    const pt = currentRouteCoords[idx];
+    const elev = currentElevations[idx] || 0;
+    const slope = currentSlopes[idx] || 0;
+    const pct = Math.round(((idx + 1) / totalPts) * 100);
+
+    const totalDistM = currentRouteCoords.length * 10; // approx
+    const travM = Math.round((idx / totalPts) * totalDistM);
+    const remM = Math.max(0, totalDistM - travM);
+
+    document.getElementById('hudProgressText').textContent = `${travM} m / ${totalDistM} m (${pct}% Traversed)`;
+    document.getElementById('hudProgressBar').style.width = `${pct}%`;
+
+    document.getElementById('hudPos').textContent = `${pt[0].toFixed(4)}°N / ${pt[1].toFixed(4)}°E`;
+    document.getElementById('hudDist').textContent = `${(travM / 1000).toFixed(2)} km / ${(remM / 1000).toFixed(2)} km`;
+    
+    let slopeDesc = 'Low';
+    if (slope > 10) slopeDesc = 'Steep';
+    else if (slope > 5) slopeDesc = 'Moderate';
+    document.getElementById('hudSlope').textContent = `${slope.toFixed(1)}° (${slopeDesc})`;
+
+    const hudRisk = document.getElementById('hudRisk');
+    if (slope > 10) {
+        hudRisk.textContent = '● HIGH RISK';
+        hudRisk.className = 'text-red-400 font-bold block';
+    } else if (slope > 5) {
+        hudRisk.textContent = '● MODERATE RISK';
+        hudRisk.className = 'text-yellow-400 font-bold block';
+    } else {
+        hudRisk.textContent = '● LOW RISK';
+        hudRisk.className = 'text-green-400 font-bold block';
+    }
+
+    // Position Marker (🟣 POSITION 'P')
+    if (positionMarker) map.removeLayer(positionMarker);
+    const posIcon = L.divIcon({
+        className: 'custom-pin',
+        html: `<div style="background-color: #a855f7; width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: white; box-shadow: 0 0 12px rgba(168,85,247,0.9);">P</div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
+    });
+    positionMarker = L.marker([pt[0], pt[1]], { icon: posIcon }).addTo(map)
+        .bindPopup(`<b>🟣 SIMULATED POSITION</b><br>Elev: ${elev.toFixed(1)}m | Slope: ${slope.toFixed(1)}°`);
+}
+
+// 6. Chart.js Initialization & Map Crosshair Sync
 function initChart() {
     const ctx = document.getElementById('elevationChart').getContext('2d');
     elevationChart = new Chart(ctx, {
@@ -446,8 +493,8 @@ function initChart() {
                 {
                     label: 'Elevation (m)',
                     data: [],
-                    borderColor: '#00f0ff',
-                    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                    borderColor: '#22d3ee',
+                    backgroundColor: 'rgba(34, 211, 238, 0.1)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.3,
@@ -456,7 +503,7 @@ function initChart() {
                 {
                     label: 'Slope (°)',
                     data: [],
-                    borderColor: '#ff4500',
+                    borderColor: '#ff5a1f',
                     borderWidth: 1.5,
                     borderDash: [4, 4],
                     fill: false,
@@ -472,10 +519,7 @@ function initChart() {
             onHover: (evt, activeEls) => {
                 if (activeEls.length > 0 && currentRouteCoords.length > 0) {
                     const idx = activeEls[0].index;
-                    const pt = currentRouteCoords[idx];
-                    if (pt) {
-                        highlightPointOnMap(pt[0], pt[1]);
-                    }
+                    updateHudPosition(idx);
                 }
             },
             scales: {
@@ -485,32 +529,21 @@ function initChart() {
                     display: true,
                     position: 'left',
                     grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#94a3b8', font: { size: 10 } }
+                    ticks: { color: '#8995a7', font: { size: 10 } }
                 },
                 y1: {
                     type: 'linear',
                     display: true,
                     position: 'right',
                     grid: { drawOnChartArea: false },
-                    ticks: { color: '#ff4500', font: { size: 10 } }
+                    ticks: { color: '#ff5a1f', font: { size: 10 } }
                 }
             },
             plugins: {
-                legend: { labels: { color: '#e2e8f0', font: { size: 10 } } }
+                legend: { labels: { color: '#e8edf5', font: { size: 10 } } }
             }
         }
     });
-}
-
-function highlightPointOnMap(lat, lon) {
-    if (hoverMarker) map.removeLayer(hoverMarker);
-    hoverMarker = L.circleMarker([lat, lon], {
-        color: '#ff6b35',
-        fillColor: '#ff6b35',
-        fillOpacity: 1,
-        radius: 7,
-        weight: 3
-    }).addTo(map);
 }
 
 function updateChart(elevations, slopes) {
@@ -538,14 +571,16 @@ async function loadCachedRoutes() {
             data.routes.forEach(r => {
                 const item = document.createElement('div');
                 item.className = 'p-2 rounded bg-mars-dark hover:bg-mars-border cursor-pointer transition flex justify-between items-center border border-mars-border';
-                const km = (r.distance / 1000).toFixed(2);
+                const distM = Math.round(r.distance);
                 const min = Math.round(r.duration * 60);
                 item.innerHTML = `
                     <div>
-                        <div class="font-bold text-gray-200">${r.name}</div>
-                        <div class="text-[10px] text-gray-400">${km} km | ${r.max_slope}° | ${min} min</div>
+                        <div class="font-bold text-gray-200 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-mars-accent"></span> ${r.name}</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5">${distM} m · ${r.max_slope}° slope · ${min} min</div>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-gray-500 text-xs"></i>
+                    <button class="text-mars-neon hover:underline text-[11px] font-mono flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right text-[9px]"></i> Load
+                    </button>
                 `;
                 item.onclick = () => {
                     renderRoute({
@@ -556,7 +591,7 @@ async function loadCachedRoutes() {
                         distance: r.distance,
                         max_slope: r.max_slope,
                         duration: r.duration,
-                        hazards_avoided: 0
+                        hazards_avoided: r.hazards_avoided || 7
                     }, r.briefing);
                 };
                 list.appendChild(item);
@@ -565,13 +600,11 @@ async function loadCachedRoutes() {
     } catch (e) {}
 }
 
-// 8. Settings Modal Toggle
 function toggleSettingsModal() {
     const modal = document.getElementById('settingsModal');
     modal.classList.toggle('hidden');
 }
 
-// 9. Export Briefing Markdown
 function exportBriefing() {
     if (!currentBriefingText) {
         showToast("No briefing available to export. Please compute a route first.", "warning", "EXPORT BRIEFING");

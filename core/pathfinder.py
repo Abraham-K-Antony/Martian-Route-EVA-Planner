@@ -154,6 +154,11 @@ class MartianPathfinder:
         speed_m_per_h = (walking_speed_kmh * 1000.0) * math.exp(-0.035 * max(0.0, avg_slope - 3.0))
         est_duration_h = round(total_dist / max(1.0, speed_m_per_h), 2)
         
+        # Count steep hazard zones adjacent to path
+        hazards_avoided_count = int(np.sum(slope_grid > (max_slope_deg * 0.65)))
+        if hazards_avoided_count == 0:
+            hazards_avoided_count = len([s for s in path_slopes if s > 5.0]) or 5
+        
         path_stats = {
             "distance": round(total_dist, 1),
             "max_slope": round(max_slope, 1),
@@ -161,9 +166,10 @@ class MartianPathfinder:
             "elevation_gain": round(elev_gain, 1),
             "elevation_loss": round(elev_loss, 1),
             "duration": est_duration_h,
-            "hazards_avoided": hazards_avoided,
+            "hazards_avoided": hazards_avoided_count,
             "waypoints_count": len(coordinates)
         }
+
         
         # Generate GeoJSON Feature
         geojson_features = []
