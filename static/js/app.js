@@ -26,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPresets();
     loadCachedRoutes();
 
+    // Initial mobile tab check
+    if (window.innerWidth < 1024) {
+        switchMobileTab('map');
+    }
+
     document.getElementById('penaltyK').addEventListener('input', (e) => {
         document.getElementById('kVal').textContent = parseFloat(e.target.value).toFixed(1);
     });
@@ -42,6 +47,55 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mapPickBtn').addEventListener('click', toggleMapPickMode);
     document.getElementById('exportBriefingBtn').addEventListener('click', exportBriefing);
 });
+
+// Mobile Navigation Tab Switcher (< 1024px)
+function switchMobileTab(tab) {
+    const panelControls = document.getElementById('panelControls');
+    const panelMap = document.getElementById('panelMap');
+    const panelBriefing = document.getElementById('panelBriefing');
+
+    const btnControls = document.getElementById('mobileTabControls');
+    const btnMap = document.getElementById('mobileTabMap');
+    const btnBriefing = document.getElementById('mobileTabBriefing');
+
+    if (window.innerWidth < 1024) {
+        [panelControls, panelMap, panelBriefing].forEach(p => {
+            if (p) p.classList.add('hidden');
+        });
+        [btnControls, btnMap, btnBriefing].forEach(b => {
+            if (b) b.className = 'flex-1 py-2.5 text-center font-bold text-gray-400 border-b-2 border-transparent flex items-center justify-center gap-1';
+        });
+
+        if (tab === 'controls') {
+            if (panelControls) panelControls.classList.remove('hidden');
+            if (btnControls) btnControls.className = 'flex-1 py-2.5 text-center font-bold text-mars-accent border-b-2 border-mars-accent flex items-center justify-center gap-1';
+        } else if (tab === 'map') {
+            if (panelMap) panelMap.classList.remove('hidden');
+            if (btnMap) btnMap.className = 'flex-1 py-2.5 text-center font-bold text-mars-neon border-b-2 border-mars-neon flex items-center justify-center gap-1';
+            setTimeout(() => {
+                if (map) map.invalidateSize();
+            }, 100);
+        } else if (tab === 'briefing') {
+            if (panelBriefing) panelBriefing.classList.remove('hidden');
+            if (btnBriefing) btnBriefing.className = 'flex-1 py-2.5 text-center font-bold text-green-400 border-b-2 border-green-400 flex items-center justify-center gap-1';
+        }
+    }
+}
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) {
+        const panelControls = document.getElementById('panelControls');
+        const panelMap = document.getElementById('panelMap');
+        const panelBriefing = document.getElementById('panelBriefing');
+        [panelControls, panelMap, panelBriefing].forEach(p => {
+            if (p) p.classList.remove('hidden');
+        });
+        if (map) map.invalidateSize();
+    } else {
+        switchMobileTab('map');
+    }
+});
+
 
 // Toast Notification System
 function showToast(message, type = 'info', title = 'MISSION CONTROL') {
