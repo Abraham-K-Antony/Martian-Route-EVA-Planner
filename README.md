@@ -1,9 +1,13 @@
 # 🔴 Interplanetary Survival Guide: Martian Route & EVA Planner
 
+🌐 **Live Website:** [https://martian-route-eva-planner.onrender.com/](https://martian-route-eva-planner.onrender.com/)
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-brightgreen?style=for-the-badge&logo=render)](https://martian-route-eva-planner.onrender.com/)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.141-green.svg)](https://fastapi.tiangolo.com/)
 [![Gemini API](https://img.shields.io/badge/Google%20Gemini-3.8%20Flash-orange.svg)](https://ai.google.dev/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-brightgreen.svg)](https://leafletjs.com/)
+
 
 A hybrid geospatial-graph-AI application for planning extravehicular activities (EVA) on Mars. Using Digital Elevation Models (DEMs) of **Jezero Crater**, the system computes lowest-cost traversal routes for astronauts using an $A^*$ graph search algorithm and generates NASA Flight Director safety briefings via the Google Gemini API.
 
