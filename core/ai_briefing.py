@@ -29,18 +29,58 @@ Route Metrics:
 - Estimated Duration: {stats.get('duration')} hours
 - Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
             """
-            for model_name in ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest']:
+            for model_name in ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest']:
                 try:
                     response = client.models.generate_content(
                         model=model_name,
-                        contents=prompt
+                        contents=prompt,
+                        config={'automatic_function_calling': {'disable': True}}
                     )
                     if response and response.text:
                         return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
                 except Exception:
+                    try:
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=prompt
+                        )
+                        if response and response.text:
+                            return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
+                    except Exception:
+                        continue
+        except Exception:
+            pass
+
+        # Try google.generativeai SDK fallback
+        try:
+            import google.generativeai as genai_legacy
+            genai_legacy.configure(api_key=key.strip())
+            prompt = f"""
+You are the NASA Mission Flight Director for a Mars surface operation (Jezero Crater EVA).
+Analyze the following route metrics and provide a concise, highly technical EVA safety briefing.
+Include required suit consumables, specific traversal risks, and operational Go/No-Go checkpoints.
+Do not use conversational filler. Format with clear Markdown headings and bullet points.
+
+Route Metrics:
+- Total Distance: {stats.get('distance')} meters
+- Maximum Incline: {stats.get('max_slope')} degrees
+- Average Slope: {stats.get('avg_slope', 'N/A')} degrees
+- Total Elevation Gain: {stats.get('elevation_gain', 'N/A')} meters
+- Total Elevation Loss: {stats.get('elevation_loss', 'N/A')} meters
+- Estimated Duration: {stats.get('duration')} hours
+- Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
+            """
+            for m_name in ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']:
+                try:
+                    m = genai_legacy.GenerativeModel(m_name)
+                    res = m.generate_content(prompt)
+                    if res and res.text:
+                        return res.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
+                except Exception:
                     continue
         except Exception:
             pass
+
 
     # Structured offline briefing fallback
     dist_m = stats.get('distance', 0)

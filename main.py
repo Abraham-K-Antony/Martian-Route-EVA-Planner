@@ -66,13 +66,14 @@ class RouteRequest(BaseModel):
     start_name: Optional[str] = "Custom Point A"
     end_name: Optional[str] = "Custom Point B"
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def read_index():
     """Serves the main NASA Mission Control single-page web app."""
     index_path = os.path.join(STATIC_DIR, "index.html")
     if not os.path.exists(index_path):
         raise HTTPException(status_code=404, detail="index.html not found in static folder.")
     return FileResponse(index_path)
+
 
 @app.get("/api/presets")
 async def get_presets():
