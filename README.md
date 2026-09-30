@@ -152,10 +152,11 @@ The traversal cost $C$ between adjacent grid nodes $u$ and $v$ is computed as:
 $$C = \Delta d + (k \cdot e^{\theta})$$
 
 where:
-- $\Delta d$ is the physical step distance between grid cell centers in meters ($1.0 \times \text{cell\_size}$ for cardinal steps, $\sqrt{2} \times \text{cell\_size}$ for diagonal steps).
+- $\Delta d$ is the physical step distance between grid cell centers in meters ($1.0 \times \text{cell size}$ for cardinal steps, $\sqrt{2} \times \text{cell size}$ for diagonal steps).
 - $k$ is the slope penalty multiplier (user configurable via slider).
 - $\theta$ is the surface slope angle in degrees.
-- If $\theta > \text{max\_slope}$ ($15^\circ$ default), the cost is set to $\infty$ (impassable cliff/wall).
+- If $\theta > \text{max slope}$ ($15^\circ$ default), the cost is set to $\infty$ (impassable cliff/wall).
+
 
 ---
 
