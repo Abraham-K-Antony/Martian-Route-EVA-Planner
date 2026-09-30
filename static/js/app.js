@@ -1,4 +1,14 @@
-// Martian Route & EVA Planner - Frontend Logic
+/**
+ * Martian Route & EVA Planner v2.0
+ * Copyright (c) 2026 Abraham K Antony. All Rights Reserved.
+ * Lead Systems Architect: Abraham K Antony
+ * Repository: https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner
+ */
+console.log(
+    "%c Martian Route & EVA Planner %c Developed by Abraham K Antony (https://github.com/Abraham-K-Antony) ",
+    "background: #ff4500; color: #ffffff; font-weight: bold; padding: 4px 8px; border-radius: 4px 0 0 4px;",
+    "background: #121624; color: #00f0ff; font-weight: bold; padding: 4px 8px; border-radius: 0 4px 4px 0;"
+);
 
 let map, startMarker, endMarker, routePolyline;
 let elevationChart = null;
@@ -7,6 +17,7 @@ let mapPickState = 'start'; // 'start' or 'end'
 let currentBriefingText = "";
 
 document.addEventListener('DOMContentLoaded', () => {
+
     initMap();
     initChart();
     loadPresets();

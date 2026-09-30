@@ -1,3 +1,11 @@
+# Martian Pathfinder Engine
+# Developed & Architected by: Abraham K Antony
+# Repository: https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner
+# Copyright (c) 2026 Abraham K Antony. All Rights Reserved.
+
+__author__ = "Abraham K Antony"
+__copyright__ = "Copyright (c) 2026 Abraham K Antony"
+
 import math
 import heapq
 import numpy as np
@@ -6,6 +14,7 @@ from typing import Tuple, Dict, List, Optional
 from core.terrain_processor import DEMProcessor
 
 class MartianPathfinder:
+
     """
     Graph construction and A* pathfinding engine for Martian Extravehicular Activity (EVA).
     Computes terrain traversal costs based on slope angles and distance metrics.

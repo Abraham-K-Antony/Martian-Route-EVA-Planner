@@ -14,11 +14,30 @@ from core.pathfinder import calculate_route
 from core.ai_briefing import generate_eva_briefing
 from core.storage import save_route, get_cached_routes, get_preset_waypoints
 
+# Martian Route & EVA Planner Engine
+# Developed & Architected by: Abraham K Antony
+# Repository: https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner
+# Copyright (c) 2026 Abraham K Antony. All Rights Reserved.
+
+__author__ = "Abraham K Antony"
+__copyright__ = "Copyright (c) 2026 Abraham K Antony"
+
+from fastapi import Request
+
 app = FastAPI(
     title="Martian Route & EVA Planner API",
     description="Hybrid Geospatial Graph-AI Engine for Mars Surface Extravehicular Activity",
     version="2.0.0"
 )
+
+# Developer Watermark HTTP Middleware
+@app.middleware("http")
+async def add_developer_watermark_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Developer-Author"] = "Abraham K Antony"
+    response.headers["X-Repository-URL"] = "https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner"
+    response.headers["X-Watermark-Signature"] = "AUTHENTIC-ORIGINAL-ABRAHAM-K-ANTONY-2026"
+    return response
 
 # Enable CORS
 app.add_middleware(
@@ -33,6 +52,7 @@ app.add_middleware(
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 class RouteRequest(BaseModel):
     start_lat: float = Field(..., example=18.4447)
@@ -92,6 +112,11 @@ async def calculate_eva_route(req: RouteRequest):
         
         return {
             "status": "success",
+            "developer": {
+                "author": "Abraham K Antony",
+                "repository": "https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner",
+                "signature": "AUTHENTIC-ABRAHAM-K-ANTONY-2026"
+            },
             "route_data": route_data,
             "path_stats": path_stats,
             "briefing": briefing
@@ -101,6 +126,19 @@ async def calculate_eva_route(req: RouteRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server pathfinding error: {str(e)}")
 
+@app.get("/api/watermark")
+async def get_system_watermark():
+    """System Verification Endpoint confirming original authorship."""
+    return {
+        "author": "Abraham K Antony",
+        "project": "Martian Route & EVA Planner",
+        "repository": "https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner",
+        "copyright": "Copyright (c) 2026 Abraham K Antony. All Rights Reserved.",
+        "watermark_hash": "AKA-EVA-2026-JEZERO-CRATER-WATERMARK-VERIFIED",
+        "status": "Authentic System Original"
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

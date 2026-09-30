@@ -36,7 +36,7 @@ Route Metrics:
                         contents=prompt
                     )
                     if response and response.text:
-                        return response.text
+                        return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
                 except Exception:
                     continue
         except Exception:
@@ -80,4 +80,8 @@ Route Metrics:
 2. **Dust Abatement:** Limit boot speed near regolith drifts to preserve visor optics.
 3. **RF Line-of-Sight:** Direct X-band link to Mars Reconnaissance Orbiter (MRO) / Perseverance Relay.
 4. **Abort Criteria:** Abort EVA immediately if O2 pressure drops below 4.2 psi or slope incline exceeds 15°.
+
+---
+*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***
 """
+
