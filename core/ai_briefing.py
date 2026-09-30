@@ -1,84 +1,40 @@
 import os
+import concurrent.futures
 from typing import Dict, Optional
+
+def _call_gemini_fast(prompt: str, key: str) -> Optional[str]:
+    """Internal fast caller targeting active Gemini model."""
+    try:
+        from google import genai
+        client = genai.Client(api_key=key.strip())
+        response = client.models.generate_content(
+            model='gemini-3.8-flash',
+            contents=prompt
+        )
+        if response and response.text:
+            return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
+    except Exception:
+        pass
+    return None
 
 def generate_eva_briefing(stats: Dict, api_key: Optional[str] = None) -> str:
     """
-    Generates a NASA Flight Director EVA Hazard Briefing using Google Gemini API.
-    Falls back to a structured telemetry report if API key is missing, invalid,
-    rate-limited (429), or offline.
+    Generates a NASA Flight Director EVA Hazard Briefing.
+    Prioritizes ultra-fast <0.1s response. Uses ThreadPoolExecutor with a 2.0s hard cap.
+    If Gemini API takes >2.0s, rate-limited, or unavailable, instantly returns the
+    structured NASA telemetry briefing.
     """
-    key = api_key or os.environ.get("GEMINI_API_KEY")
-    
-    if key and key.strip():
-        # Clean list of active Google Gemini model identifiers
-        candidate_models = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-flash-latest']
-        
-        prompt = f"""
-You are the NASA Mission Flight Director for a Mars surface operation (Jezero Crater EVA).
-Analyze the following route metrics and provide a concise, highly technical EVA safety briefing.
-Include required suit consumables, specific traversal risks, and operational Go/No-Go checkpoints.
-Do not use conversational filler. Format with clear Markdown headings and bullet points.
-
-Route Metrics:
-- Total Distance: {stats.get('distance')} meters
-- Maximum Incline: {stats.get('max_slope')} degrees
-- Average Slope: {stats.get('avg_slope', 'N/A')} degrees
-- Total Elevation Gain: {stats.get('elevation_gain', 'N/A')} meters
-- Total Elevation Loss: {stats.get('elevation_loss', 'N/A')} meters
-- Estimated Duration: {stats.get('duration')} hours
-- Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
-"""
-        # 1. Primary: google-genai SDK
-        try:
-            from google import genai
-            client = genai.Client(api_key=key.strip())
-            
-            for model_name in candidate_models:
-                try:
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=prompt
-                    )
-                    if response and response.text:
-                        return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
-                except Exception as model_err:
-                    err_msg = str(model_err)
-                    if "404" in err_msg or "NOT_FOUND" in err_msg:
-                        continue  # Try next valid model name
-                    elif "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                        break  # Quota reached for today, fall back to offline report
-                    else:
-                        continue
-        except Exception:
-            pass
-
-        # 2. Secondary fallback: legacy google.generativeai SDK
-        try:
-            import google.generativeai as genai_legacy
-            genai_legacy.configure(api_key=key.strip())
-            for m_name in ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-1.5-flash']:
-                try:
-                    m = genai_legacy.GenerativeModel(m_name)
-                    res = m.generate_content(prompt)
-                    if res and res.text:
-                        return res.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
-                except Exception:
-                    continue
-        except Exception:
-            pass
-
-    # 3. Structured offline briefing fallback (Triggered when offline, unauthenticated, or rate-limited)
     dist_m = stats.get('distance', 0)
     duration_h = stats.get('duration', 0)
     max_slope = stats.get('max_slope', 0)
     elev_gain = stats.get('elevation_gain', 0)
     
-    # Consumables calculation based on NASA xEMU standards
+    # Pre-compute NASA xEMU telemetry consumables (instant <1ms)
     o2_liters = round(duration_h * 60 * 1.1, 1) # ~1.1 L/min active EVA
     power_kwh = round(duration_h * 0.45, 2) # ~0.45 kW/h PLSS battery draw
     water_kg = round(duration_h * 0.35, 2) # LCVG cooling fluid loop
     
-    return f"""### 🚀 NASA EVA MISSION BRIEFING & TELEMETRY
+    offline_briefing = f"""### 🚀 NASA EVA MISSION BRIEFING & TELEMETRY
 
 **FLIGHT DIRECTOR DIRECTIVE:** EVA-JEZERO-{int(dist_m)}
 
@@ -109,3 +65,36 @@ Route Metrics:
 ---
 *Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***
 """
+
+    key = api_key or os.environ.get("GEMINI_API_KEY")
+    if not key or not key.strip():
+        return offline_briefing
+
+    prompt = f"""
+You are the NASA Mission Flight Director for a Mars surface operation (Jezero Crater EVA).
+Analyze the following route metrics and provide a concise, highly technical EVA safety briefing.
+Include required suit consumables, specific traversal risks, and operational Go/No-Go checkpoints.
+Do not use conversational filler. Format with clear Markdown headings and bullet points.
+
+Route Metrics:
+- Total Distance: {stats.get('distance')} meters
+- Maximum Incline: {stats.get('max_slope')} degrees
+- Average Slope: {stats.get('avg_slope', 'N/A')} degrees
+- Total Elevation Gain: {stats.get('elevation_gain', 'N/A')} meters
+- Total Elevation Loss: {stats.get('elevation_loss', 'N/A')} meters
+- Estimated Duration: {stats.get('duration')} hours
+- Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
+"""
+
+    # Attempt fast Gemini API call with 2.0s maximum hard wait time
+    try:
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = executor.submit(_call_gemini_fast, prompt, key)
+        result = future.result(timeout=2.0)
+        executor.shutdown(wait=False)
+        if result:
+            return result
+    except Exception:
+        pass
+
+    return offline_briefing
