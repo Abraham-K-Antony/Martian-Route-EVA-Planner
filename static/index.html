@@ -79,6 +79,12 @@
         .nav-btn {
             transition: all 0.2s ease;
         }
+        @media print {
+            body { background: white !important; color: black !important; }
+            nav, aside#panelControls, #panelMap, .modal { display: none !important; }
+            #panelBriefing { width: 100% !important; display: block !important; }
+            #briefingContent { color: black !important; overflow: visible !important; }
+        }
         .nav-btn:hover {
             color: #22d3ee;
             background: rgba(34, 211, 238, 0.1);
@@ -513,9 +519,17 @@
                     <h3 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-1.5">
                         <i class="fa-solid fa-user-astronaut text-mars-accent"></i> MISSION BRIEFING
                     </h3>
-                    <button id="exportBriefingBtn" class="text-[11px] bg-mars-border hover:bg-gray-700 text-gray-300 px-2 py-0.5 rounded transition">
-                        <i class="fa-solid fa-download"></i> Export
-                    </button>
+                    <div class="flex items-center gap-1 font-mono">
+                        <button id="exportBriefingBtn" onclick="exportBriefing()" class="text-[10px] bg-mars-border hover:bg-gray-700 text-gray-200 px-2 py-0.5 rounded transition flex items-center gap-1">
+                            <i class="fa-solid fa-file-arrow-down text-mars-accent"></i> MD
+                        </button>
+                        <button onclick="exportGeoJSON()" class="text-[10px] bg-mars-border hover:bg-gray-700 text-cyan-400 px-2 py-0.5 rounded transition flex items-center gap-1">
+                            <i class="fa-solid fa-earth-americas"></i> GeoJSON
+                        </button>
+                        <button onclick="printMissionReport()" class="text-[10px] bg-mars-border hover:bg-gray-700 text-yellow-400 px-2 py-0.5 rounded transition flex items-center gap-1">
+                            <i class="fa-solid fa-print"></i> PDF
+                        </button>
+                    </div>
                 </div>
                 
                 <div id="briefingContent" class="text-xs text-gray-300 overflow-y-auto custom-scrollbar flex-1 space-y-2 pr-1 leading-relaxed">

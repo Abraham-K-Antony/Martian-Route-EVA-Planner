@@ -860,4 +860,52 @@ function exportBriefing() {
     a.download = 'mars_eva_briefing.md';
     a.click();
     URL.revokeObjectURL(url);
+    showToast("NASA EVA Flight Director Briefing exported as Markdown (.md)", "success", "EXPORT BRIEFING");
+}
+
+function exportGeoJSON() {
+    if (!currentRouteCoords || currentRouteCoords.length === 0) {
+        showToast("No active route path available to export. Please compute a route first.", "warning", "EXPORT GEOJSON");
+        return;
+    }
+
+    const geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": currentRouteCoords.map(pt => [pt[1], pt[0]])
+                },
+                "properties": {
+                    "elevations": currentElevations,
+                    "slopes": currentSlopes,
+                    "target": "Jezero Crater, Mars"
+                }
+            }
+        ],
+        "properties": {
+            "title": "Martian Route & EVA Traverse GeoJSON",
+            "author": "Abraham K Antony",
+            "system": "Martian Route & EVA Planner v2.0"
+        }
+    };
+
+    const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mars_eva_route.geojson';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("GeoJSON route exported for QGIS / ArcGIS / NASA GISTT!", "success", "EXPORT GEOJSON");
+}
+
+function printMissionReport() {
+    if (!currentBriefingText) {
+        showToast("No active mission briefing report available to print. Please compute a route first.", "warning", "PRINT MISSION REPORT");
+        return;
+    }
+    window.print();
 }
