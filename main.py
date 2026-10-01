@@ -52,14 +52,14 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 class RouteRequest(BaseModel):
-    start_lat: float = Field(..., example=18.4447)
-    start_lon: float = Field(..., example=77.4508)
-    end_lat: float = Field(..., example=18.4550)
-    end_lon: float = Field(..., example=77.4180)
-    penalty_k: float = Field(10.0, example=10.0)
-    max_slope_deg: float = Field(15.0, example=15.0)
-    preferred_slope_deg: float = Field(8.0, example=8.0)
-    walking_speed_kmh: float = Field(3.5, example=3.5)
+    start_lat: float = Field(..., ge=-90.0, le=90.0, description="Start latitude (-90 to 90)", example=18.4447)
+    start_lon: float = Field(..., ge=-180.0, le=180.0, description="Start longitude (-180 to 180)", example=77.4508)
+    end_lat: float = Field(..., ge=-90.0, le=90.0, description="Destination latitude (-90 to 90)", example=18.4550)
+    end_lon: float = Field(..., ge=-180.0, le=180.0, description="Destination longitude (-180 to 180)", example=77.4180)
+    penalty_k: float = Field(10.0, ge=1.0, le=50.0, example=10.0)
+    max_slope_deg: float = Field(15.0, ge=3.0, le=30.0, example=15.0)
+    preferred_slope_deg: float = Field(8.0, ge=1.0, le=25.0, example=8.0)
+    walking_speed_kmh: float = Field(3.5, ge=0.5, le=10.0, example=3.5)
     is_round_trip: bool = Field(False, example=False)
     api_key: Optional[str] = None
     start_name: Optional[str] = "Custom Point A"
@@ -101,6 +101,16 @@ async def calculate_eva_route(req: RouteRequest):
         end_pt = (req.end_lat, req.end_lon)
         
         pathfinder = MartianPathfinder()
+        
+        # Verify coordinates fall within DEM spatial bounds
+        bounds = pathfinder.dem.bounds
+        if (req.start_lat < bounds.bottom or req.start_lat > bounds.top or
+            req.start_lon < bounds.left or req.start_lon > bounds.right):
+            raise ValueError(f"Start coordinate ({req.start_lat:.4f}, {req.start_lon:.4f}) is outside Jezero DEM bounds [{bounds.bottom:.2f}-{bounds.top:.2f}°N, {bounds.left:.2f}-{bounds.right:.2f}°E]. Select a location inside Jezero Crater.")
+        if (req.end_lat < bounds.bottom or req.end_lat > bounds.top or
+            req.end_lon < bounds.left or req.end_lon > bounds.right):
+            raise ValueError(f"Destination coordinate ({req.end_lat:.4f}, {req.end_lon:.4f}) is outside Jezero DEM bounds [{bounds.bottom:.2f}-{bounds.top:.2f}°N, {bounds.left:.2f}-{bounds.right:.2f}°E]. Select a location inside Jezero Crater.")
+
         multi_result = pathfinder.calculate_all_routes(
             start_pt,
             end_pt,
