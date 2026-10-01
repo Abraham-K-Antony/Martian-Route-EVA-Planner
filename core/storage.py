@@ -44,8 +44,11 @@ def init_db():
             default_pts = [
                 ("Perseverance Landing Site (Octavia E. Butler)", "Landing Site", 18.4447, 77.4508, -2570.0, "Mars 2020 touchdown point in Jezero Crater floor."),
                 ("Neretva Vallis Delta Edge", "Scientific Interest", 18.4550, 77.4180, -2520.0, "Ancient river delta deposit rich in clay minerals."),
-                ("Western Rim Overlook", "Geological Hazard", 18.4720, 77.3850, -2200.0, "Steep crater wall transition zone (~15-25 deg incline)."),
-                ("Belva Crater Ejecta", "Sampling Target", 18.4280, 77.4650, -2590.0, "Impact crater exposing exposed bedrock strata.")
+                ("Belva Crater Ejecta", "Sampling Target", 18.4280, 77.4650, -2590.0, "Impact crater exposing exposed bedrock strata."),
+                ("Margin Unit (Carbonate Bedrock)", "Geological Target", 18.4620, 77.4010, -2490.0, "Carbonate and olivine-bearing outcrop along crater rim."),
+                ("Bright Angel (Cheyava Falls Specimen)", "Astrobiology Target", 18.4710, 77.4120, -2480.0, "Cheyava Falls outcrop with potential organic signatures."),
+                ("Western Crater Rim Overlook", "Geological Hazard", 18.4720, 77.3850, -2200.0, "Steep crater wall transition zone (~15-25 deg incline)."),
+                ("Kodiak Mesa Promontory", "Stratigraphic Outcrop", 18.4150, 77.4320, -2540.0, "Isolated mesa remnant exhibiting delta top-set beds.")
             ]
             cursor.executemany("""
                 INSERT INTO waypoints (label, category, lat, lon, elevation_m, description)

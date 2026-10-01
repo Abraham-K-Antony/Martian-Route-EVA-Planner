@@ -637,8 +637,27 @@ function updateHudPosition(idx) {
     const slope = currentSlopes[idx] || 0;
     const pct = Math.round(((idx + 1) / totalPts) * 100);
 
-    const totalDistM = currentRouteCoords.length * 10;
-    const travM = Math.round((idx / totalPts) * totalDistM);
+    // Compute cumulative distance up to idx
+    let travM = 0.0;
+    for (let i = 1; i <= idx; i++) {
+        const p1 = currentRouteCoords[i-1];
+        const p2 = currentRouteCoords[i];
+        const dLat = (p2[0] - p1[0]) * 111320.0;
+        const dLon = (p2[1] - p1[1]) * 111320.0 * Math.cos((p1[0] * Math.PI)/180.0);
+        travM += Math.sqrt(dLat*dLat + dLon*dLon);
+    }
+    
+    let totalDistM = travM;
+    for (let i = idx + 1; i < totalPts; i++) {
+        const p1 = currentRouteCoords[i-1];
+        const p2 = currentRouteCoords[i];
+        const dLat = (p2[0] - p1[0]) * 111320.0;
+        const dLon = (p2[1] - p1[1]) * 111320.0 * Math.cos((p1[0] * Math.PI)/180.0);
+        totalDistM += Math.sqrt(dLat*dLat + dLon*dLon);
+    }
+
+    travM = Math.round(travM);
+    totalDistM = Math.round(totalDistM);
     const remM = Math.max(0, totalDistM - travM);
 
     document.getElementById('hudProgressText').textContent = `${travM} m / ${totalDistM} m (${pct}% Traversed)`;
@@ -647,16 +666,20 @@ function updateHudPosition(idx) {
     document.getElementById('hudPos').textContent = `${pt[0].toFixed(4)}°N / ${pt[1].toFixed(4)}°E`;
     document.getElementById('hudDist').textContent = `${(travM / 1000).toFixed(2)} km / ${(remM / 1000).toFixed(2)} km`;
     
-    let slopeDesc = 'Low';
-    if (slope > 10) slopeDesc = 'Steep';
-    else if (slope > 5) slopeDesc = 'Moderate';
+    let slopeDesc = 'Nominal';
+    if (slope > 12) slopeDesc = 'Hazardous';
+    else if (slope > 8) slopeDesc = 'Steep';
+    else if (slope > 4) slopeDesc = 'Moderate';
     document.getElementById('hudSlope').textContent = `${slope.toFixed(1)}° (${slopeDesc})`;
 
     const hudRisk = document.getElementById('hudRisk');
-    if (slope > 10) {
-        hudRisk.textContent = '● HIGH RISK';
+    if (slope > 12) {
+        hudRisk.textContent = '● BARRIER / EXTREME';
         hudRisk.className = 'text-red-400 font-bold block';
-    } else if (slope > 5) {
+    } else if (slope > 8) {
+        hudRisk.textContent = '● HIGH RISK';
+        hudRisk.className = 'text-orange-400 font-bold block';
+    } else if (slope > 4) {
         hudRisk.textContent = '● MODERATE RISK';
         hudRisk.className = 'text-yellow-400 font-bold block';
     } else {
@@ -667,12 +690,12 @@ function updateHudPosition(idx) {
     if (positionMarker) map.removeLayer(positionMarker);
     const posIcon = L.divIcon({
         className: 'custom-pin',
-        html: `<div style="background-color: #a855f7; width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: white; box-shadow: 0 0 12px rgba(168,85,247,0.9);">P</div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11]
+        html: `<div style="background-color: #00f0ff; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; color: #000; box-shadow: 0 0 14px rgba(0,240,255,0.9);">P</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
     });
     positionMarker = L.marker([pt[0], pt[1]], { icon: posIcon }).addTo(map)
-        .bindPopup(`<b>🟣 SIMULATED POSITION</b><br>Elev: ${elev.toFixed(1)}m | Slope: ${slope.toFixed(1)}°`);
+        .bindPopup(`<b>🌐 TRAVERSE LOCATION #${idx+1}</b><br>Lat: ${pt[0].toFixed(4)}° | Lon: ${pt[1].toFixed(4)}°<br>Elev: ${elev.toFixed(1)}m | Slope: ${slope.toFixed(1)}°`);
 }
 
 // 6. Chart.js
@@ -716,7 +739,11 @@ function initChart() {
                 }
             },
             scales: {
-                x: { display: false },
+                x: { 
+                    display: true,
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: { color: '#8995a7', font: { size: 9 }, maxTicksLimit: 8 }
+                },
                 y: {
                     type: 'linear',
                     display: true,
@@ -733,7 +760,16 @@ function initChart() {
                 }
             },
             plugins: {
-                legend: { labels: { color: '#e8edf5', font: { size: 10 } } }
+                legend: { labels: { color: '#e8edf5', font: { size: 10 } } },
+                tooltip: {
+                    callbacks: {
+                        title: (items) => `Waypoint #${items[0].dataIndex + 1} (${items[0].label})`,
+                        label: (ctx) => {
+                            const val = ctx.raw;
+                            return ctx.datasetIndex === 0 ? ` Elevation: ${val.toFixed(1)} m` : ` Slope: ${val.toFixed(1)}°`;
+                        }
+                    }
+                }
             }
         }
     });
@@ -741,7 +777,21 @@ function initChart() {
 
 function updateChart(elevations, slopes) {
     if (!elevationChart) return;
-    elevationChart.data.labels = elevations.map((_, i) => i);
+
+    // Compute distance labels for X axis
+    let cumDist = 0.0;
+    const labels = elevations.map((_, i) => {
+        if (i > 0 && currentRouteCoords.length > i) {
+            const p1 = currentRouteCoords[i-1];
+            const p2 = currentRouteCoords[i];
+            const dLat = (p2[0] - p1[0]) * 111320.0;
+            const dLon = (p2[1] - p1[1]) * 111320.0 * Math.cos((p1[0] * Math.PI)/180.0);
+            cumDist += Math.sqrt(dLat*dLat + dLon*dLon);
+        }
+        return `${Math.round(cumDist)}m`;
+    });
+
+    elevationChart.data.labels = labels;
     elevationChart.data.datasets[0].data = elevations;
     elevationChart.data.datasets[1].data = slopes;
     elevationChart.update();
