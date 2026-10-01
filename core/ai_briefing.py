@@ -11,16 +11,23 @@ warnings.filterwarnings("ignore", message=".*automatic function calling.*")
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def _call_gemini_fast(prompt: str, key: str) -> Optional[str]:
-    """Internal fast caller targeting active Gemini model."""
+    """
+    Internal fast caller using google.genai SDK.
+    Supports model fallback (gemini-2.5-flash, gemini-2.0-flash, gemini-1.5-flash).
+    """
     try:
         from google import genai
         client = genai.Client(api_key=key.strip())
-        response = client.models.generate_content(
-            model='gemini-3.8-flash',
-            contents=prompt
-        )
-        if response and response.text:
-            return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
+        for model_name in ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt
+                )
+                if response and response.text:
+                    return response.text + "\n\n---\n*Mission Control Flight Operations | Lead Systems Architect: **Abraham K Antony***"
+            except Exception:
+                continue
     except Exception:
         pass
     return None
@@ -88,16 +95,20 @@ def generate_eva_briefing(stats: Dict, api_key: Optional[str] = None) -> str:
     prompt = f"""
 You are the NASA Mission Flight Director for a Mars surface operation (Jezero Crater EVA).
 Analyze the following route metrics and provide a concise, highly technical EVA safety briefing.
-Include required suit consumables, specific traversal risks, and operational Go/No-Go checkpoints.
+Include required suit consumables, specific traversal risks, solar glare/aspect hazards, RF communication coverage, and operational Go/No-Go checkpoints.
 Do not use conversational filler. Format with clear Markdown headings and bullet points.
 
 Route Metrics:
-- Total Distance: {stats.get('distance')} meters
-- Maximum Incline: {stats.get('max_slope')} degrees
+- Total Distance: {dist_m} meters
+- Maximum Incline: {max_slope} degrees
 - Average Slope: {stats.get('avg_slope', 'N/A')} degrees
-- Total Elevation Gain: {stats.get('elevation_gain', 'N/A')} meters
-- Total Elevation Loss: {stats.get('elevation_loss', 'N/A')} meters
-- Estimated Duration: {stats.get('duration')} hours
+- Total Elevation Gain: {elev_gain} meters
+- Total Elevation Loss: {stats.get('elevation_loss_m', 'N/A')} meters
+- Estimated Duration: {stats.get('duration_h', 'N/A')} hours ({stats.get('duration_min', 'N/A')} min)
+- Metabolic Oxygen Consumed: {o2_liters} Liters ({o2_kg} kg O2, {plss_pct}% PLSS Capacity)
+- 3D Comms Line-of-Sight Coverage: {los_pct}%
+- Solar Hazards: {glare_cnt} Direct Glare Sectors, {shadow_cnt} Deep Shadow Sectors
+- Point of No Return Index: #{stats.get('point_of_no_return_index', 'N/A')}
 - Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
 """
 
