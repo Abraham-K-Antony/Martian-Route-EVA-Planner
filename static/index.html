@@ -213,7 +213,7 @@
                         <span class="font-bold font-mono uppercase text-white">🔄 Round Trip</span>
                     </label>
                 </label>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 text-center font-mono">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-1 text-center font-mono">
                     <button id="modeEnergy" onclick="setRouteMode('lowest_energy')" class="p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white font-bold transition text-[10px]">
                         <div>⚡ ENERGY</div>
                         <div class="text-[8px] text-gray-300">Minetti Model</div>
@@ -225,6 +225,10 @@
                     <button id="modeSafest" onclick="setRouteMode('safest')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
                         <div>🛡️ SAFEST</div>
                         <div class="text-[8px] text-gray-500">Low Slope</div>
+                    </button>
+                    <button id="modeComms" onclick="setRouteMode('comms_safe')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
+                        <div>📡 COMMS</div>
+                        <div class="text-[8px] text-gray-500">RF LoS Mesh</div>
                     </button>
                     <button id="modeLegacy" onclick="setRouteMode('legacy')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
                         <div>📜 LEGACY</div>

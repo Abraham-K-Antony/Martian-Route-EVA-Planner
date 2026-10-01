@@ -369,10 +369,11 @@ function setRouteMode(mode) {
     const btnEnergy = document.getElementById('modeEnergy');
     const btnFastest = document.getElementById('modeFastest');
     const btnSafest = document.getElementById('modeSafest');
+    const btnComms = document.getElementById('modeComms');
     const btnLegacy = document.getElementById('modeLegacy');
     const kContainer = document.getElementById('kPenaltyContainer');
 
-    [btnEnergy, btnFastest, btnSafest, btnLegacy].forEach(b => {
+    [btnEnergy, btnFastest, btnSafest, btnComms, btnLegacy].forEach(b => {
         if (b) b.className = 'p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]';
     });
 
@@ -384,6 +385,9 @@ function setRouteMode(mode) {
         if (kContainer) kContainer.classList.add('hidden');
     } else if (mode === 'safest' && btnSafest) {
         btnSafest.className = 'p-1.5 rounded border border-green-500 bg-green-500/20 text-white font-bold transition text-[10px]';
+        if (kContainer) kContainer.classList.add('hidden');
+    } else if (mode === 'comms_safe' && btnComms) {
+        btnComms.className = 'p-1.5 rounded border border-cyan-400 bg-cyan-400/20 text-white font-bold transition text-[10px]';
         if (kContainer) kContainer.classList.add('hidden');
     } else if (mode === 'legacy' && btnLegacy) {
         btnLegacy.className = 'p-1.5 rounded border border-purple-500 bg-purple-500/20 text-white font-bold transition text-[10px]';

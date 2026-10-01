@@ -101,6 +101,17 @@ class MartianPathfinder:
             dist_m = math.sqrt(((r - end_node[0]) * dy_m)**2 + ((c - end_node[1]) * dx_m)**2)
             return dist_m * min_unit_cost
 
+        # Precompute 2D comms coverage grid if mode is comms_safe
+        comms_grid = None
+        if mode == "comms_safe":
+            comms_grid = np.ones((rows, cols), dtype=np.float32)
+            for r_idx in range(0, rows, 2):
+                for c_idx in range(0, cols, 2):
+                    n_lat, n_lon = self.dem.rowcol_to_latlon(min_r + r_idx, min_c + c_idx)
+                    has_rf, _ = self.safety_analyzer.check_multi_relay_los(n_lat, n_lon, float(elev_grid[r_idx, c_idx]))
+                    mult = 1.0 if has_rf else 6.0
+                    comms_grid[r_idx:min(rows, r_idx+2), c_idx:min(cols, c_idx+2)] = mult
+
         pq = []
         heapq.heappush(pq, (0.0, start_node[0], start_node[1]))
         g_score = {start_node: 0.0}
@@ -148,6 +159,9 @@ class MartianPathfinder:
                         step_cost = (step_m / speed_ms) * hazard_mult * soft_penalty
                     elif mode == "safest":
                         step_cost = step_m * (1.0 + 15.0 * ((slope_val / max_slope_deg)**2)) * hazard_mult
+                    elif mode == "comms_safe":
+                        comms_penalty = float(comms_grid[nr, nc]) if comms_grid is not None else 1.0
+                        step_cost = step_m * comms_penalty * (1.0 + 5.0 * ((slope_val / max_slope_deg)**2)) * hazard_mult
                     else:  # Legacy mode
                         step_cost = step_m + (penalty_k * math.exp(slope_val * math.pi / 180.0))
                     
@@ -307,7 +321,7 @@ class MartianPathfinder:
         'lowest_energy', 'fastest', 'safest', 'legacy'.
         """
         routes = {}
-        for mode in ["lowest_energy", "fastest", "safest", "legacy"]:
+        for mode in ["lowest_energy", "fastest", "safest", "comms_safe", "legacy"]:
             try:
                 g_json, stats = self.calculate_single_route(
                     start_latlon, end_latlon,

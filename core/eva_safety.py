@@ -8,16 +8,23 @@ PLSS_MAX_DURATION_HOURS = 8.0     # Maximum suit PLSS mission operational limit
 PLSS_SAFETY_MARGIN_FACTOR = 1.20  # 1.2x PLSS safety buffer factor
 O2_DENSITY_KG_PER_L = 0.001429    # Oxygen density at STP (kg/L)
 
+DEFAULT_RELAY_STATIONS = [
+    {"name": "Perseverance Rover Relay", "lat": 18.4447, "lon": 77.4508, "height_m": 2.5, "range_m": 6000.0},
+    {"name": "Ingenuity Airfield Relay", "lat": 18.4480, "lon": 77.4450, "height_m": 1.5, "range_m": 3500.0},
+    {"name": "Jezero Rim Tower Relay", "lat": 18.4720, "lon": 77.3850, "height_m": 15.0, "range_m": 18000.0}
+]
+
 class EVASafetyAnalyzer:
     """
     Advanced NASA EVA Safety & Mission Realism Engine.
     Computes metabolic oxygen consumption rate, PLSS consumable limits,
     Mars Sun position / solar glare / shadow hazards, aspect angles, 
-    3D terrain Line-of-Sight (LoS) comms ray-casting, and Point-of-No-Return (PoNR).
+    3D multi-station Line-of-Sight (LoS) comms mesh, and Point-of-No-Return (PoNR).
     """
 
-    def __init__(self, dem_processor):
+    def __init__(self, dem_processor, relay_stations: Optional[List[Dict]] = None):
         self.dem = dem_processor
+        self.relay_stations = relay_stations if relay_stations is not None else DEFAULT_RELAY_STATIONS
 
     def compute_aspect_grid(self, elev_grid: np.ndarray, dy_m: float, dx_m: float) -> np.ndarray:
         """
@@ -129,9 +136,9 @@ class EVASafetyAnalyzer:
                 hazard_type = "nominal"
             sun_hazard_flags.append(hazard_type)
 
-            # 2. 3D Line-of-Sight (LoS) Ray-Casting to Base Station
-            is_obstructed = self._check_los_ray(base_lat, base_lon, base_elev, lat, lon, elev + 2.0)
-            los_obstructed_flags.append(is_obstructed)
+            # 2. 3D Multi-Station Mesh Line-of-Sight (LoS) Ray-Casting
+            has_conn, active_relay_name = self.check_multi_relay_los(lat, lon, elev)
+            los_obstructed_flags.append(not has_conn)
 
             # 3. Oxygen Consumption & Cumulative Metrics
             if i > 0:
@@ -203,6 +210,7 @@ class EVASafetyAnalyzer:
             "shadow_hazards_count": sum(1 for h in sun_hazard_flags if h == "shadow"),
             "los_coverage_pct": los_coverage_pct,
             "los_obstructed_count": sum(1 for x in los_obstructed_flags if x),
+            "active_relays_count": len(self.relay_stations),
             "point_of_no_return_index": ponr_idx,
             "point_of_no_return_coord": coordinates[ponr_idx],
             "aspect_angles": aspect_angles,
@@ -210,6 +218,28 @@ class EVASafetyAnalyzer:
             "los_obstructed_flags": los_obstructed_flags,
             "o2_rates_lpm": o2_rates_lpm
         }
+
+    def check_multi_relay_los(self, lat: float, lon: float, elev: float) -> Tuple[bool, str]:
+        """
+        Checks Line-of-Sight connection across all active relay stations.
+        Returns (has_connection: bool, active_relay_name: str).
+        """
+        best_relay = "Dead Zone (No Comms)"
+        has_conn = False
+
+        for st in self.relay_stations:
+            d_lat = (lat - st["lat"]) * (math.pi / 180.0) * MARS_RADIUS_M
+            d_lon = (lon - st["lon"]) * (math.pi / 180.0) * MARS_RADIUS_M * math.cos(math.radians(lat))
+            dist_m = math.sqrt(d_lat**2 + d_lon**2)
+
+            if dist_m <= st["range_m"]:
+                st_elev = self.dem.get_elevation(st["lat"], st["lon"]) + st["height_m"]
+                is_obstructed = self._check_los_ray(st["lat"], st["lon"], st_elev, lat, lon, elev + 2.0)
+                if not is_obstructed:
+                    has_conn = True
+                    best_relay = st["name"]
+                    break
+        return has_conn, best_relay
 
     def _check_los_ray(self, lat1: float, lon1: float, z1: float, lat2: float, lon2: float, z2: float, samples: int = 15) -> bool:
         """
@@ -222,7 +252,6 @@ class EVASafetyAnalyzer:
             los_z = z1 + t * (z2 - z1)
             
             dem_z = self.dem.get_elevation(lat_t, lon_t)
-            # If DEM terrain is higher than ray elevation (plus 0.5m buffer), LoS is blocked
             if dem_z > (los_z + 0.5):
                 return True
         return False
