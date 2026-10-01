@@ -57,7 +57,6 @@
                 height: 380px;
             }
         }
-        /* CSS Filter turning satellite tiles into Martian reddish-orange regolith */
         #map .leaflet-tile-pane {
             filter: brightness(0.65) sepia(1) hue-rotate(-35deg) saturate(3) contrast(1.2);
         }
@@ -77,6 +76,18 @@
             background: #202b3a;
             border-radius: 3px;
         }
+        .nav-btn {
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover {
+            color: #22d3ee;
+            background: rgba(34, 211, 238, 0.1);
+        }
+        .nav-btn.active {
+            color: #ff5a1f;
+            border-bottom: 2px solid #ff5a1f;
+            background: rgba(255, 90, 31, 0.15);
+        }
     </style>
 </head>
 <body class="min-h-screen lg:h-screen flex flex-col overflow-x-hidden lg:overflow-hidden select-none">
@@ -84,7 +95,7 @@
     <!-- Toast Notification Overlay Container -->
     <div id="toastContainer" class="fixed top-16 right-4 sm:right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-xs sm:max-w-sm"></div>
 
-    <!-- Top Mission Control Header (Mobile & Desktop Responsive) -->
+    <!-- Top Mission Control Header -->
     <header class="bg-mars-panel border-b border-mars-border px-3 sm:px-6 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-lg">
         <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-mars-accent/20 flex items-center justify-center border border-mars-accent shrink-0">
@@ -113,7 +124,34 @@
         </div>
     </header>
 
-    <!-- Mobile Navigation Tab Bar (Visible on mobile/tablets < 1024px) -->
+    <!-- Navigation Menu Bar -->
+    <nav class="bg-mars-dark border-b border-mars-border px-3 sm:px-6 py-1.5 flex items-center justify-between overflow-x-auto custom-scrollbar font-mono text-xs">
+        <div class="flex items-center gap-1 sm:gap-2">
+            <button onclick="switchViewTab('map')" id="navMapBtn" class="nav-btn active px-3 py-1.5 rounded flex items-center gap-1.5 font-bold">
+                <i class="fa-solid fa-map-location-dot"></i> <span>TACTICAL MAP & HUD</span>
+            </button>
+            <button onclick="openModal('tutorialModal')" id="navTutorialBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
+                <i class="fa-solid fa-graduation-cap text-yellow-400"></i> <span>TUTORIAL & GUIDE</span>
+            </button>
+            <button onclick="openModal('projectFilesModal')" id="navFilesBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
+                <i class="fa-solid fa-folder-tree text-mars-neon"></i> <span>PROJECT FILES</span>
+            </button>
+            <button onclick="openModal('apiKeyModal')" id="navApiKeyBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
+                <i class="fa-solid fa-key text-green-400"></i> <span>SECURE API KEY</span>
+            </button>
+            <button onclick="openModal('contactModal')" id="navContactBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
+                <i class="fa-solid fa-address-card text-mars-glow"></i> <span>CONTACT & AUTHOR</span>
+            </button>
+        </div>
+
+        <div class="hidden md:flex items-center gap-2 text-[11px] text-gray-400">
+            <span id="apiKeyStatusBadge" class="text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/30 flex items-center gap-1">
+                <i class="fa-solid fa-lock"></i> Client API Key Isolated
+            </span>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Tab Bar -->
     <div class="lg:hidden flex bg-mars-panel border-b border-mars-border text-xs font-mono sticky top-0 z-40">
         <button id="mobileTabControls" onclick="switchMobileTab('controls')" class="flex-1 py-2.5 text-center font-bold text-gray-400 border-b-2 border-transparent flex items-center justify-center gap-1">
             <i class="fa-solid fa-sliders"></i> CONTROLS
@@ -126,10 +164,10 @@
         </button>
     </div>
 
-    <!-- Main Workspace Layout (3-Column Desktop, Stack/Tabbed Mobile) -->
+    <!-- Main Workspace Layout -->
     <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
         
-        <!-- Left Panel: Guided Workflow (01 -> 02 -> 03 -> 04) -->
+        <!-- Left Panel: Guided Workflow -->
         <aside id="panelControls" class="w-full lg:w-80 bg-mars-panel border-b lg:border-b-0 lg:border-r border-mars-border p-3.5 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
             
             <!-- 01 MISSION ROUTE PRESETS -->
@@ -203,7 +241,7 @@
                 </div>
             </div>
 
-            <!-- ADVANCED COORDINATES (ACCORDION) -->
+            <!-- ADVANCED COORDINATES -->
             <details class="glass-panel rounded-lg border border-mars-border text-xs group">
                 <summary class="p-2.5 font-semibold text-gray-300 cursor-pointer flex justify-between items-center select-none">
                     <span><i class="fa-solid fa-map-pin text-mars-neon mr-1"></i> Advanced Coordinates</span>
@@ -245,14 +283,14 @@
                 <span id="btnSubtext" class="text-[10px] opacity-80 font-normal mt-0.5">Terrain-aware A* + AI Safety Briefing</span>
             </button>
 
-            <!-- AI STATUS & SETTINGS -->
+            <!-- AI STATUS & QUICK CONFIG -->
             <div class="glass-panel p-2.5 rounded-lg border border-mars-border flex items-center justify-between text-[11px] font-mono">
                 <div class="flex items-center gap-2 text-green-400">
                     <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                     <span>AI MISSION ANALYSIS: ONLINE</span>
                 </div>
-                <button onclick="toggleSettingsModal()" class="text-gray-400 hover:text-white transition">
-                    <i class="fa-solid fa-gear"></i>
+                <button onclick="openModal('apiKeyModal')" class="text-gray-400 hover:text-white transition" title="Secure API Key Settings">
+                    <i class="fa-solid fa-key"></i>
                 </button>
             </div>
 
@@ -275,7 +313,6 @@
             <div class="relative glass-panel rounded-lg overflow-hidden border border-mars-border">
                 <div id="map"></div>
                 
-                <!-- Map Layer Toggle & Legend Controls (Responsive layout) -->
                 <div class="absolute top-2 right-2 sm:top-3 sm:right-3 z-[1000] bg-mars-panel/95 backdrop-blur px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg border border-mars-border text-[11px] sm:text-xs flex flex-wrap items-center gap-2 sm:gap-4 text-gray-200 max-w-[90%] sm:max-w-none">
                     <div class="flex items-center gap-2 sm:gap-3 border-r border-mars-border/60 pr-2 sm:pr-3">
                         <label class="flex items-center gap-1 cursor-pointer">
@@ -297,7 +334,6 @@
                     </div>
                 </div>
 
-                <!-- Map Risk Gradient Legend Overlay -->
                 <div class="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-[1000] bg-mars-panel/95 backdrop-blur px-2 py-1 sm:px-2.5 sm:py-1.5 rounded border border-mars-border text-[9px] sm:text-[10px] font-mono flex items-center gap-2 sm:gap-3 text-gray-300 flex-wrap max-w-[85%] sm:max-w-none">
                     <span class="font-bold text-gray-400">RISK:</span>
                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400"></span> Low</span>
@@ -338,7 +374,7 @@
                 </div>
             </div>
 
-            <!-- Profile Chart Panel with Map Interaction -->
+            <!-- Profile Chart Panel -->
             <div class="glass-panel p-3 rounded-lg border border-mars-border">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-1">
                     <h3 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
@@ -354,10 +390,10 @@
             </div>
         </main>
 
-        <!-- Right Panel: Telemetry, Life Support & Structured Briefing -->
+        <!-- Right Panel: Telemetry & Briefing -->
         <aside id="panelBriefing" class="w-full lg:w-96 bg-mars-panel border-t lg:border-t-0 lg:border-l border-mars-border p-3.5 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
             
-            <!-- 1. TELEMETRY METRIC TILES -->
+            <!-- TELEMETRY METRIC TILES -->
             <div class="grid grid-cols-2 gap-2">
                 <div class="glass-panel p-2.5 rounded-lg border border-mars-border">
                     <span class="text-[10px] text-gray-400 uppercase tracking-wider">ROUTE DISTANCE</span>
@@ -365,7 +401,6 @@
                     <span class="text-[9px] text-gray-500">Traversal Length</span>
                 </div>
                 
-                <!-- Maximum Slope Card with Visual Constraint Bar -->
                 <div class="glass-panel p-2.5 rounded-lg border border-mars-border">
                     <div class="flex justify-between items-center text-[10px] text-gray-400 uppercase tracking-wider">
                         <span>MAXIMUM SLOPE</span>
@@ -380,7 +415,7 @@
 
                 <div class="glass-panel p-2.5 rounded-lg border border-mars-border">
                     <span class="text-[10px] text-gray-400 uppercase tracking-wider">EST EVA DURATION</span>
-                    <div id="metricDuration" class="text-base sm:text-lg font-mono font-bold text-mars-neon mt-0.5" title="≈ 0.20 hr">12 min</div>
+                    <div id="metricDuration" class="text-base sm:text-lg font-mono font-bold text-mars-neon mt-0.5">12 min</div>
                     <span class="text-[9px] text-gray-500">Estimated Traversal</span>
                 </div>
 
@@ -391,7 +426,7 @@
                 </div>
             </div>
 
-            <!-- 2. ROUTE SAFETY & STATUS BADGE -->
+            <!-- ROUTE SAFETY STATUS -->
             <div id="safetyStatusCard" class="glass-panel p-2.5 rounded-lg border border-green-500/40 bg-green-500/10 flex items-center justify-between">
                 <div>
                     <span class="text-[10px] text-gray-400 uppercase font-mono tracking-wider">FLIGHT DIRECTOR EVALUATION</span>
@@ -404,7 +439,7 @@
                 </span>
             </div>
 
-            <!-- 3. VISUAL "WHY THIS ROUTE?" TRADEOFF BREAKDOWN -->
+            <!-- WHY THIS ROUTE BREAKDOWN -->
             <div class="glass-panel p-3 rounded-lg border border-mars-border text-xs space-y-2">
                 <div class="flex justify-between items-center font-bold text-gray-200 uppercase tracking-wider text-[11px]">
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-brain text-mars-accent"></i> WHY THIS ROUTE?</span>
@@ -431,7 +466,7 @@
                 <p class="text-[10px] text-gray-400 italic leading-tight">Selected using exponential steepness penalty C = Δd + k·e^θ to optimize suit safety.</p>
             </div>
 
-            <!-- 4. STRUCTURED COLLAPSIBLE MISSION BRIEFING -->
+            <!-- MISSION BRIEFING DISPLAY -->
             <div class="glass-panel p-3 rounded-lg border border-mars-border flex-1 flex flex-col overflow-hidden min-h-[220px]">
                 <div class="flex justify-between items-center mb-2 border-b border-mars-border pb-2">
                     <h3 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-1.5">
@@ -453,38 +488,210 @@
 
     </div>
 
-    <!-- AI Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel p-5 rounded-lg max-w-md w-full border border-mars-border text-xs space-y-4">
-            <div class="flex justify-between items-center border-b border-mars-border pb-2">
-                <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                    <i class="fa-solid fa-gear text-mars-neon"></i> AI & System Configuration
+    <!-- ========================================== -->
+    <!-- MODAL WINDOWS & MENU AREA PANELS          -->
+    <!-- ========================================== -->
+
+    <!-- 1. BEGINNER TUTORIAL & GUIDE MODAL (How-To, What-To, Why-To) -->
+    <div id="tutorialModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
+        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-3xl w-full border border-mars-border max-h-[90vh] flex flex-col overflow-hidden text-xs sm:text-sm">
+            <div class="flex justify-between items-center border-b border-mars-border pb-3">
+                <h3 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-yellow-400"></i> Beginner Guide & Operational Manual
                 </h3>
-                <button onclick="toggleSettingsModal()" class="text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-base"></i>
+                <button onclick="closeModal('tutorialModal')" class="text-gray-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="space-y-3 font-mono">
-                <div>
-                    <label class="block font-semibold text-gray-300 mb-1">AI Model Engine:</label>
-                    <div class="text-mars-neon font-bold">Google Gemini 1.5 / 3.5 Flash</div>
+            
+            <div class="overflow-y-auto custom-scrollbar flex-1 py-4 space-y-5 text-gray-300 pr-2">
+                <!-- WHAT SECTION -->
+                <section class="space-y-2 bg-mars-dark/60 p-4 rounded-lg border border-mars-border">
+                    <h4 class="font-bold text-mars-accent uppercase tracking-wider flex items-center gap-2 text-xs sm:text-sm font-mono">
+                        <i class="fa-solid fa-circle-info"></i> WHAT IS THIS SYSTEM?
+                    </h4>
+                    <p class="leading-relaxed">
+                        The <b>Interplanetary Survival Guide: Martian Route & EVA Planner</b> is a hybrid geospatial-graph-AI application designed for planning safe surface Extravehicular Activities (EVAs) for astronauts exploring **Jezero Crater, Mars**.
+                    </p>
+                </section>
+
+                <!-- WHY SECTION -->
+                <section class="space-y-2 bg-mars-dark/60 p-4 rounded-lg border border-mars-border">
+                    <h4 class="font-bold text-mars-neon uppercase tracking-wider flex items-center gap-2 text-xs sm:text-sm font-mono">
+                        <i class="fa-solid fa-triangle-exclamation"></i> WHY DO WE NEED IT? (THE MARS SURVIVAL PROBLEM)
+                    </h4>
+                    <p class="leading-relaxed">
+                        Mars surface terrain presents extreme hazards: steep crater drop-offs ($>20^\circ$), loose regolith scree, sharp basalt boulders, and zero atmospheric pressure. Astronaut xEMU spacesuits have strict life support constraints (90-120 minutes of $O_2$ and battery). Walking in a straight line over a crater rim can cause slips, suit tears, or metabolic overexertion.
+                    </p>
+                    <div class="p-2.5 bg-mars-panel rounded border border-mars-accent/30 font-mono text-xs text-mars-glow">
+                        Cost Function: C = Δd + (k · e^θ)
+                    </div>
+                    <p class="text-xs text-gray-400">
+                        Our engine uses an exponential penalty function $C = \Delta d + k \cdot e^\theta$ to penalize slope steepness ($\theta$), routing astronauts *around* hazardous cliffs rather than over them.
+                    </p>
+                </section>
+
+                <!-- HOW TO SECTION -->
+                <section class="space-y-3 bg-mars-dark/60 p-4 rounded-lg border border-mars-border">
+                    <h4 class="font-bold text-green-400 uppercase tracking-wider flex items-center gap-2 text-xs sm:text-sm font-mono">
+                        <i class="fa-solid fa-list-check"></i> HOW TO USE THE SYSTEM (STEP-BY-STEP TUTORIAL)
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-2 text-xs leading-relaxed text-gray-200">
+                        <li><b>Select Mission Route:</b> Use preset locations (e.g. *Perseverance Landing Site ➔ Neretva Delta*) or click <b>"Click Map Pins"</b> to set custom pins anywhere on the satellite map.</li>
+                        <li><b>Choose Strategy:</b> Select 🛡️ <b>SAFEST</b> (avoids all slopes), ⚖️ <b>BALANCED</b> (optimal balance), or ⚡ <b>FASTEST</b> (direct travel).</li>
+                        <li><b>Set Incline Ceiling:</b> Adjust the <b>Max Slope Barrier</b> slider (default $15^\circ$) to enforce your suit's safe slope threshold.</li>
+                        <li><b>Compute Route:</b> Click <b>04 COMPUTE EVA ROUTE</b> to trigger the A* algorithm and AI briefing generation.</li>
+                        <li><b>Inspect Telemetry & Briefing:</b> Analyze the red path overlay on the map, hover on the elevation profile chart, check suit consumable metrics, and review the NASA Flight Director Safety Briefing.</li>
+                    </ol>
+                </section>
+            </div>
+
+            <div class="pt-3 border-t border-mars-border flex justify-end">
+                <button onclick="closeModal('tutorialModal')" class="bg-mars-accent hover:bg-mars-glow text-white font-bold px-5 py-2 rounded text-xs">
+                    Got it, Back to Map
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. PROJECT FILES & ARCHITECTURE MODAL -->
+    <div id="projectFilesModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
+        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-3xl w-full border border-mars-border max-h-[90vh] flex flex-col overflow-hidden text-xs sm:text-sm">
+            <div class="flex justify-between items-center border-b border-mars-border pb-3">
+                <h3 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-folder-tree text-mars-neon"></i> Project Files & System Architecture
+                </h3>
+                <button onclick="closeModal('projectFilesModal')" class="text-gray-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto custom-scrollbar flex-1 py-4 space-y-4 text-gray-300 pr-2">
+                <!-- Repository Link Card -->
+                <div class="bg-mars-accent/10 p-3.5 rounded-lg border border-mars-accent/40 flex items-center justify-between">
+                    <div>
+                        <span class="font-bold text-white block">Official GitHub Repository</span>
+                        <span class="text-xs text-gray-400 font-mono">Abraham-K-Antony/Martian-Route-EVA-Planner</span>
+                    </div>
+                    <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" class="bg-mars-accent hover:bg-mars-glow text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5">
+                        <i class="fa-brands fa-github text-sm"></i> View Source
+                    </a>
                 </div>
-                <div>
-                    <label class="block font-semibold text-gray-300 mb-1">Active Analysis Modules:</label>
-                    <div class="space-y-1 text-gray-300 text-[11px]">
-                        <div><i class="fa-solid fa-check text-green-400"></i> Terrain DEM Grid Matrix</div>
-                        <div><i class="fa-solid fa-check text-green-400"></i> xEMU Suit Consumables Calculator</div>
-                        <div><i class="fa-solid fa-check text-green-400"></i> Hazard Avoidance Engine</div>
-                        <div><i class="fa-solid fa-check text-green-400"></i> Flight Director Safety Assessment</div>
+
+                <!-- File Directory Structure -->
+                <div class="bg-mars-dark p-4 rounded-lg border border-mars-border font-mono text-xs space-y-2">
+                    <h4 class="text-mars-neon font-bold text-xs uppercase mb-2">Codebase Structure:</h4>
+                    <div class="text-gray-300 space-y-1">
+                        <div>📁 <span class="text-white font-bold">core/</span></div>
+                        <div class="pl-4">├── <span class="text-yellow-400">pathfinder.py</span> <span class="text-gray-500">— A* graph search & slope penalty engine</span></div>
+                        <div class="pl-4">├── <span class="text-yellow-400">terrain_processor.py</span> <span class="text-gray-500">— Rasterio DEM parser & slope gradient solver</span></div>
+                        <div class="pl-4">├── <span class="text-yellow-400">ai_briefing.py</span> <span class="text-gray-500">— Gemini API Flight Director briefing module</span></div>
+                        <div class="pl-4">└── <span class="text-yellow-400">storage.py</span> <span class="text-gray-500">— SQLite route caching & preset waypoints</span></div>
+                        <div class="mt-2">📁 <span class="text-white font-bold">data/</span></div>
+                        <div class="pl-4">├── <span class="text-green-400">jezero_dem_downsampled.tif</span> <span class="text-gray-500">— Mars GeoTIFF DEM dataset</span></div>
+                        <div class="pl-4">└── <span class="text-green-400">waypoints.sqlite</span> <span class="text-gray-500">— SQLite database store</span></div>
+                        <div class="mt-2">📄 <span class="text-mars-neon font-bold">main.py</span> <span class="text-gray-500">— FastAPI REST application & Uvicorn web server</span></div>
+                        <div>📄 <span class="text-mars-neon font-bold">static/index.html</span> <span class="text-gray-500">— Single-page NASA Mission Control UI</span></div>
                     </div>
                 </div>
-                <div class="pt-2 border-t border-mars-border">
-                    <span class="text-gray-400">Status:</span>
-                    <span class="text-green-400 font-bold ml-2">● API Connected</span>
+            </div>
+
+            <div class="pt-3 border-t border-mars-border flex justify-end">
+                <button onclick="closeModal('projectFilesModal')" class="bg-mars-border hover:bg-gray-700 text-white font-bold px-4 py-2 rounded text-xs">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SECURE CLIENT-SIDE API KEY MANAGER MODAL -->
+    <div id="apiKeyModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
+        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-md w-full border border-mars-border flex flex-col gap-4 text-xs sm:text-sm">
+            <div class="flex justify-between items-center border-b border-mars-border pb-3">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-key text-green-400"></i> Secure Gemini API Key Manager
+                </h3>
+                <button onclick="closeModal('apiKeyModal')" class="text-gray-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <!-- Security Guarantee Box -->
+            <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg text-xs space-y-1.5 text-gray-300">
+                <span class="font-bold text-green-400 flex items-center gap-1 font-mono">
+                    <i class="fa-solid fa-shield-halved"></i> CLIENT-SIDE PRIVACY GUARANTEE:
+                </span>
+                <p class="leading-relaxed text-[11px] text-gray-300">
+                    Your Gemini API key is saved **ONLY in your browser's private `localStorage`**. It is never written to disk, database, or server logs. No admin or other user can access your key.
+                </p>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block font-semibold text-gray-300">Personal Google Gemini API Key:</label>
+                <input type="password" id="userApiKeyInput" placeholder="AIzaSy..." class="w-full bg-mars-dark border border-mars-border rounded p-2.5 text-white font-mono text-xs focus:outline-none focus:border-green-400">
+                <p class="text-[10px] text-gray-500">Need a free key? Get one from <a href="https://aistudio.google.com/" target="_blank" class="text-mars-neon hover:underline">Google AI Studio</a>.</p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-mars-border">
+                <button onclick="clearUserApiKey()" class="text-red-400 hover:underline text-xs flex items-center gap-1 font-mono">
+                    <i class="fa-solid fa-trash"></i> Remove Key
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeModal('apiKeyModal')" class="bg-mars-border hover:bg-gray-700 text-gray-300 font-bold px-3 py-1.5 rounded text-xs">
+                        Cancel
+                    </button>
+                    <button onclick="saveUserApiKey()" class="bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-1.5 rounded text-xs flex items-center gap-1 font-mono">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Securely
+                    </button>
                 </div>
             </div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="toggleSettingsModal()" class="bg-mars-accent hover:bg-mars-glow text-white font-bold px-4 py-2 rounded">
+        </div>
+    </div>
+
+    <!-- 4. CONTACT & AUTHOR INFORMATION MODAL -->
+    <div id="contactModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
+        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-lg w-full border border-mars-border flex flex-col gap-4 text-xs sm:text-sm">
+            <div class="flex justify-between items-center border-b border-mars-border pb-3">
+                <h3 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-address-card text-mars-glow"></i> Contact & Author Information
+                </h3>
+                <button onclick="closeModal('contactModal')" class="text-gray-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-gray-300">
+                <div class="bg-mars-dark p-4 rounded-lg border border-mars-border flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-mars-accent/20 border border-mars-accent flex items-center justify-center text-mars-accent text-xl font-bold font-mono">
+                        AKA
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">Abraham K Antony</h4>
+                        <p class="text-xs text-mars-neon font-mono">Lead Systems Architect & Developer</p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Interplanetary Survival Guide: Martian Route & EVA Planner</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2 text-xs font-mono">
+                    <div class="flex items-center gap-2 p-2 bg-mars-panel rounded border border-mars-border">
+                        <i class="fa-brands fa-github text-mars-neon text-sm"></i>
+                        <span class="text-gray-400">GitHub:</span>
+                        <a href="https://github.com/Abraham-K-Antony" target="_blank" class="text-white hover:underline font-bold">github.com/Abraham-K-Antony</a>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 bg-mars-panel rounded border border-mars-border">
+                        <i class="fa-solid fa-code-commit text-mars-accent text-sm"></i>
+                        <span class="text-gray-400">Repository:</span>
+                        <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" class="text-mars-glow hover:underline font-bold truncate">Martian-Route-EVA-Planner</a>
+                    </div>
+                </div>
+
+                <div class="text-[11px] text-gray-400 leading-relaxed italic border-t border-mars-border pt-3">
+                    Developed for interplanetary surface exploration, autonomous rover pathing, and astronaut safety navigation. Copyright © 2026 Abraham K Antony. All Rights Reserved.
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-mars-border flex justify-end">
+                <button onclick="closeModal('contactModal')" class="bg-mars-accent hover:bg-mars-glow text-white font-bold px-4 py-2 rounded text-xs">
                     Close
                 </button>
             </div>

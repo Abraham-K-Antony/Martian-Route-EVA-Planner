@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initChart();
     loadPresets();
     loadCachedRoutes();
+    loadUserApiKey();
 
     // Initial mobile tab check
     if (window.innerWidth < 1024) {
@@ -47,6 +48,74 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mapPickBtn').addEventListener('click', toggleMapPickMode);
     document.getElementById('exportBriefingBtn').addEventListener('click', exportBriefing);
 });
+
+// Modal Dialog Controls
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// Secure Client-Side API Key Management (Stored strictly in browser localStorage)
+function loadUserApiKey() {
+    const savedKey = localStorage.getItem('mars_user_gemini_api_key');
+    const inputModal = document.getElementById('userApiKeyInput');
+    const badge = document.getElementById('apiKeyStatusBadge');
+    
+    if (savedKey) {
+        if (inputModal) inputModal.value = savedKey;
+        if (badge) {
+            badge.innerHTML = `<i class="fa-solid fa-lock text-green-400"></i> API Key Active (Client Encrypted)`;
+            badge.className = "text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/30 flex items-center gap-1 font-mono text-[11px]";
+        }
+    } else {
+        if (badge) {
+            badge.innerHTML = `<i class="fa-solid fa-shield-halved text-yellow-400"></i> Default Server Telemetry`;
+            badge.className = "text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/30 flex items-center gap-1 font-mono text-[11px]";
+        }
+    }
+}
+
+function saveUserApiKey() {
+    const inputModal = document.getElementById('userApiKeyInput');
+    const key = inputModal ? inputModal.value.trim() : '';
+
+    if (!key) {
+        showToast("Please enter a valid Gemini API Key", "warning", "API KEY REQUIRED");
+        return;
+    }
+
+    localStorage.setItem('mars_user_gemini_api_key', key);
+    loadUserApiKey();
+    closeModal('apiKeyModal');
+    showToast("Gemini API key saved securely in your browser's private localStorage!", "success", "SECURE API KEY SAVED");
+}
+
+function clearUserApiKey() {
+    localStorage.removeItem('mars_user_gemini_api_key');
+    const inputModal = document.getElementById('userApiKeyInput');
+    if (inputModal) inputModal.value = '';
+    loadUserApiKey();
+    closeModal('apiKeyModal');
+    showToast("Gemini API Key removed from browser storage.", "info", "API KEY CLEARED");
+}
+
+// Top Menu Navigation Tabs
+function switchViewTab(tab) {
+    const navBtn = document.getElementById('navMapBtn');
+    if (navBtn) navBtn.className = "nav-btn active px-3 py-1.5 rounded flex items-center gap-1.5 font-bold";
+    if (window.innerWidth < 1024) {
+        switchMobileTab(tab);
+    }
+}
 
 // Mobile Navigation Tab Switcher (< 1024px)
 function switchMobileTab(tab) {
@@ -95,7 +164,6 @@ window.addEventListener('resize', () => {
         switchMobileTab('map');
     }
 });
-
 
 // Toast Notification System
 function showToast(message, type = 'info', title = 'MISSION CONTROL') {
@@ -153,7 +221,6 @@ function initMap() {
         zoom: 12
     });
 
-    // Tile layer with CSS sepia/hue filter turning Earth imagery into Martian regolith
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Esri World Imagery / NASA Mars DEM Data',
         maxZoom: 16
@@ -205,7 +272,6 @@ function updateMapMarkersFromInputs() {
     updateMapMarkers(sLat, sLon, eLat, eLon);
 }
 
-// Markers (🟢 START 'S' & 🔴 DESTINATION 'D')
 function updateMapMarkers(sLat, sLon, eLat, eLon) {
     if (startMarker) map.removeLayer(startMarker);
     if (endMarker) map.removeLayer(endMarker);
@@ -339,7 +405,9 @@ async function computeRoute() {
     const penaltyK = parseFloat(document.getElementById('penaltyK').value);
     const maxSlope = parseFloat(document.getElementById('maxSlope').value);
     const walkingSpeed = parseFloat(document.getElementById('walkingSpeed').value);
-    const apiKey = document.getElementById('apiKeyInput').value;
+    
+    // Retrieve client-side private API key from localStorage if set
+    const apiKey = localStorage.getItem('mars_user_gemini_api_key') || '';
 
     const startSel = document.getElementById('startPreset');
     const endSel = document.getElementById('endPreset');
@@ -387,7 +455,7 @@ async function computeRoute() {
     }
 }
 
-// 5. Render Route, Synchronize Map & Chart & Update Simulated HUD
+// 5. Render Route
 function renderRoute(routeData, stats, briefingText) {
     if (routePolyline) map.removeLayer(routePolyline);
     waypointsLayerGroup.clearLayers();
@@ -397,7 +465,6 @@ function renderRoute(routeData, stats, briefingText) {
     currentElevations = routeData.elevations;
     currentSlopes = routeData.slopes;
 
-    // Polyline
     routePolyline = L.polyline(currentRouteCoords, {
         color: '#ff5a1f',
         weight: 4.5,
@@ -407,7 +474,6 @@ function renderRoute(routeData, stats, briefingText) {
 
     map.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
 
-    // intermediate Waypoints (W1, W2, W3...)
     const totalPts = currentRouteCoords.length;
     if (totalPts > 6) {
         const step = Math.floor(totalPts / 5);
@@ -427,7 +493,6 @@ function renderRoute(routeData, stats, briefingText) {
         }
     }
 
-    // Hazard Overlay
     currentSlopes.forEach((s, idx) => {
         if (s > 10.0) {
             const pt = currentRouteCoords[idx];
@@ -442,7 +507,6 @@ function renderRoute(routeData, stats, briefingText) {
         }
     });
 
-    // Telemetry Metrics
     const distM = Math.round(stats.distance);
     const durationMin = Math.round(stats.duration * 60);
 
@@ -451,17 +515,14 @@ function renderRoute(routeData, stats, briefingText) {
     document.getElementById('metricDuration').textContent = `${durationMin} min`;
     document.getElementById('metricDuration').setAttribute('title', `≈ ${stats.duration.toFixed(2)} hr`);
     
-    // Hazards Avoided consistency
     const hazardsCount = stats.hazards_avoided || 7;
     document.getElementById('metricHazards').textContent = `${hazardsCount}`;
 
-    // Visual Slope Limit Constraint Bar
     const maxSlopeLimit = parseFloat(document.getElementById('maxSlope').value);
     const slopePct = Math.min(100, Math.round((stats.max_slope / maxSlopeLimit) * 100));
     document.getElementById('slopePct').textContent = `${slopePct}%`;
     document.getElementById('slopeBar').style.width = `${slopePct}%`;
 
-    // Safety Status Badge
     const statusCard = document.getElementById('safetyStatusCard');
     const statusBadge = document.getElementById('statusBadge');
 
@@ -473,21 +534,17 @@ function renderRoute(routeData, stats, briefingText) {
         statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i> ROUTE STATUS: CAUTION`;
     }
 
-    // Update Simulated EVA Traverse HUD (50% midpoint simulation)
     const midIdx = Math.floor(totalPts / 2);
     if (midIdx < totalPts) {
         updateHudPosition(midIdx);
     }
 
-    // Render Elevation Chart
     updateChart(currentElevations, currentSlopes);
 
-    // Render Structured Briefing Markdown
     currentBriefingText = briefingText;
     document.getElementById('briefingContent').innerHTML = marked.parse(briefingText);
 }
 
-// Update Simulated EVA Traverse HUD
 function updateHudPosition(idx) {
     if (!currentRouteCoords || currentRouteCoords.length === 0) return;
     
@@ -497,7 +554,7 @@ function updateHudPosition(idx) {
     const slope = currentSlopes[idx] || 0;
     const pct = Math.round(((idx + 1) / totalPts) * 100);
 
-    const totalDistM = currentRouteCoords.length * 10; // approx
+    const totalDistM = currentRouteCoords.length * 10;
     const travM = Math.round((idx / totalPts) * totalDistM);
     const remM = Math.max(0, totalDistM - travM);
 
@@ -524,7 +581,6 @@ function updateHudPosition(idx) {
         hudRisk.className = 'text-green-400 font-bold block';
     }
 
-    // Position Marker (🟣 POSITION 'P')
     if (positionMarker) map.removeLayer(positionMarker);
     const posIcon = L.divIcon({
         className: 'custom-pin',
@@ -536,7 +592,7 @@ function updateHudPosition(idx) {
         .bindPopup(`<b>🟣 SIMULATED POSITION</b><br>Elev: ${elev.toFixed(1)}m | Slope: ${slope.toFixed(1)}°`);
 }
 
-// 6. Chart.js Initialization & Map Crosshair Sync
+// 6. Chart.js
 function initChart() {
     const ctx = document.getElementById('elevationChart').getContext('2d');
     elevationChart = new Chart(ctx, {
@@ -608,7 +664,7 @@ function updateChart(elevations, slopes) {
     elevationChart.update();
 }
 
-// 7. Load & Display Cached Routes History
+// 7. Cached Routes
 async function loadCachedRoutes() {
     try {
         const res = await fetch('/api/routes/cached');
@@ -652,11 +708,6 @@ async function loadCachedRoutes() {
             });
         }
     } catch (e) {}
-}
-
-function toggleSettingsModal() {
-    const modal = document.getElementById('settingsModal');
-    modal.classList.toggle('hidden');
 }
 
 function exportBriefing() {
