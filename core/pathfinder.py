@@ -3,6 +3,7 @@ import heapq
 import numpy as np
 from typing import Tuple, Dict, List, Optional
 from core.terrain_processor import DEMProcessor, MARS_RADIUS_M
+from core.eva_safety import EVASafetyAnalyzer
 
 # Physical Astronaut & xEMU Suit Parameters
 M_ASTRONAUT_KG = 80.0
@@ -22,6 +23,7 @@ class MartianPathfinder:
     
     def __init__(self, dem_processor: Optional[DEMProcessor] = None):
         self.dem = dem_processor if dem_processor is not None else DEMProcessor()
+        self.safety_analyzer = EVASafetyAnalyzer(self.dem)
 
     @staticmethod
     def calculate_metabolic_cost_per_m(slope_deg: float, grade: float) -> float:
@@ -215,6 +217,15 @@ class MartianPathfinder:
         avg_slope = float(np.mean(path_slopes)) if path_slopes else 0.0
         hazards_avoided = int(np.sum(slope_grid > (max_slope_deg * 0.65)))
 
+        # Analyze EVA Safety: Metabolic Oxygen, Solar Glare/Aspect, 3D LoS, PoNR
+        safety = self.safety_analyzer.analyze_path_safety(
+            coordinates=coordinates,
+            elevations=path_elevations,
+            slopes=path_slopes,
+            base_station_latlon=start_latlon,
+            walking_speed_kmh=walking_speed_kmh
+        )
+
         path_stats = {
             "mode": mode,
             "distance_m": round(total_dist_m, 1),
@@ -230,7 +241,20 @@ class MartianPathfinder:
             "hazards_avoided": max(3, hazards_avoided),
             "is_round_trip": is_round_trip,
             "effective_resolution_m": round(sub["effective_resolution_m"], 1),
-            "resolution_warning": sub["effective_resolution_m"] > 30.0
+            "resolution_warning": sub["effective_resolution_m"] > 30.0,
+            # EVA Safety & Mission Realism Telemetry
+            "o2_consumed_liters": safety.get("o2_consumed_liters", 0.0),
+            "o2_consumed_kg": safety.get("o2_consumed_kg", 0.0),
+            "plss_used_pct": safety.get("plss_used_pct", 0.0),
+            "exceeds_o2_capacity": safety.get("exceeds_o2_capacity", False),
+            "exceeds_max_duration": safety.get("exceeds_max_duration", False),
+            "sun_elevation_deg": safety.get("sun_elevation_deg", 45.0),
+            "sun_azimuth_deg": safety.get("sun_azimuth_deg", 225.0),
+            "glare_hazards_count": safety.get("glare_hazards_count", 0),
+            "shadow_hazards_count": safety.get("shadow_hazards_count", 0),
+            "los_coverage_pct": safety.get("los_coverage_pct", 100.0),
+            "los_obstructed_count": safety.get("los_obstructed_count", 0),
+            "point_of_no_return_index": safety.get("point_of_no_return_index", len(coordinates) - 1)
         }
 
         # GeoJSON LineString
@@ -247,7 +271,10 @@ class MartianPathfinder:
                     "segment": i,
                     "elevation_start": path_elevations[i],
                     "elevation_end": path_elevations[i+1],
-                    "slope": path_slopes[i]
+                    "slope": path_slopes[i],
+                    "aspect": safety.get("aspect_angles", [])[i] if i < len(safety.get("aspect_angles", [])) else 180.0,
+                    "sun_hazard": safety.get("sun_hazard_flags", [])[i] if i < len(safety.get("sun_hazard_flags", [])) else "nominal",
+                    "los_obstructed": safety.get("los_obstructed_flags", [])[i] if i < len(safety.get("los_obstructed_flags", [])) else False
                 }
             })
 
@@ -258,6 +285,7 @@ class MartianPathfinder:
                 "coordinates": coordinates,
                 "elevations": path_elevations,
                 "slopes": path_slopes,
+                "safety": safety,
                 "stats": path_stats
             }
         }

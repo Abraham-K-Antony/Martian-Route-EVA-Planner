@@ -419,35 +419,47 @@
         <aside id="panelBriefing" class="w-full lg:w-96 bg-mars-panel border-t lg:border-t-0 lg:border-l border-mars-border p-3.5 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
             
             <!-- TELEMETRY METRIC TILES -->
-            <div class="grid grid-cols-2 gap-2">
-                <div class="glass-panel p-2.5 rounded-lg border border-mars-border">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-wider">ROUTE DISTANCE</span>
-                    <div id="metricDistance" class="text-base sm:text-lg font-mono font-bold text-white mt-0.5">689 m</div>
-                    <span class="text-[9px] text-gray-500">Traversal Length</span>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div class="glass-panel p-2 rounded-lg border border-mars-border">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">ROUTE DISTANCE</span>
+                    <div id="metricDistance" class="text-sm sm:text-base font-mono font-bold text-white mt-0.5">689 m</div>
+                    <span class="text-[8px] text-gray-500 block">Traversal Length</span>
                 </div>
                 
-                <div class="glass-panel p-2.5 rounded-lg border border-mars-border">
-                    <div class="flex justify-between items-center text-[10px] text-gray-400 uppercase tracking-wider">
-                        <span>MAXIMUM SLOPE</span>
+                <div class="glass-panel p-2 rounded-lg border border-mars-border">
+                    <div class="flex justify-between items-center text-[9px] text-gray-400 uppercase tracking-wider">
+                        <span>MAX SLOPE</span>
                         <span id="slopePct" class="font-mono text-yellow-400 font-bold">61%</span>
                     </div>
-                    <div id="metricSlope" class="text-base sm:text-lg font-mono font-bold text-yellow-400 mt-0.5">9.2°</div>
-                    <div class="w-full bg-mars-dark h-1.5 rounded-full overflow-hidden border border-mars-border mt-1">
+                    <div id="metricSlope" class="text-sm sm:text-base font-mono font-bold text-yellow-400 mt-0.5">9.2°</div>
+                    <div class="w-full bg-mars-dark h-1 rounded-full overflow-hidden border border-mars-border mt-0.5">
                         <div id="slopeBar" class="bg-yellow-400 h-full transition-all duration-300" style="width: 61%"></div>
                     </div>
-                    <span class="text-[9px] text-gray-500 block mt-0.5">Limit: <span id="limitSlopeText">15.0°</span></span>
+                    <span class="text-[8px] text-gray-500 block mt-0.5">Limit: <span id="limitSlopeText">15.0°</span></span>
                 </div>
 
-                <div class="glass-panel p-2.5 rounded-lg border border-mars-border">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-wider">EST EVA DURATION</span>
-                    <div id="metricDuration" class="text-base sm:text-lg font-mono font-bold text-mars-neon mt-0.5">12 min</div>
-                    <span class="text-[9px] text-gray-500">Estimated Traversal</span>
+                <div class="glass-panel p-2 rounded-lg border border-mars-border">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">EVA DURATION</span>
+                    <div id="metricDuration" class="text-sm sm:text-base font-mono font-bold text-mars-neon mt-0.5">12 min</div>
+                    <span id="metricEnergy" class="text-[8px] text-gray-400 block truncate">142 kcal / 0.59 MJ</span>
                 </div>
 
-                <div class="glass-panel p-2.5 rounded-lg border border-mars-border">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-wider">HAZARDS AVOIDED</span>
-                    <div id="metricHazards" class="text-base sm:text-lg font-mono font-bold text-green-400 mt-0.5">7</div>
-                    <span class="text-[9px] text-gray-500">Hazards Avoided</span>
+                <div class="glass-panel p-2 rounded-lg border border-mars-border">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">O2 CONSUMPTION</span>
+                    <div id="metricO2" class="text-sm sm:text-base font-mono font-bold text-green-400 mt-0.5">14.2 L</div>
+                    <span id="metricPlssPct" class="text-[8px] text-green-300 block">1.7% PLSS Tank (0.02kg)</span>
+                </div>
+
+                <div class="glass-panel p-2 rounded-lg border border-mars-border">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">3D COMMS LoS</span>
+                    <div id="metricLoS" class="text-sm sm:text-base font-mono font-bold text-cyan-400 mt-0.5">100%</div>
+                    <span id="metricLoSSub" class="text-[8px] text-gray-500 block">Base Rover Relay</span>
+                </div>
+
+                <div class="glass-panel p-2 rounded-lg border border-mars-border">
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">SOLAR HAZARDS</span>
+                    <div id="metricSolar" class="text-sm sm:text-base font-mono font-bold text-orange-400 mt-0.5">0 Glare</div>
+                    <span id="metricSolarSub" class="text-[8px] text-gray-500 block">Az 225° / Elev 45°</span>
                 </div>
             </div>
 

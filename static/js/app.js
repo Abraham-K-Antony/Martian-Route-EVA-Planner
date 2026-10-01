@@ -565,16 +565,37 @@ function renderRoute(routeData, stats, briefingText) {
         }
     });
 
-    const distM = Math.round(stats.distance);
-    const durationMin = Math.round(stats.duration * 60);
+    const distM = Math.round(stats.distance_m || stats.distance || 0);
+    const durationMin = Math.round((stats.duration_sec ? stats.duration_sec / 60 : (stats.duration || 0) * 60));
+    const durationH = stats.duration_h || (durationMin / 60.0);
 
     document.getElementById('metricDistance').textContent = `${distM} m`;
     document.getElementById('metricSlope').textContent = `${stats.max_slope}°`;
     document.getElementById('metricDuration').textContent = `${durationMin} min`;
-    document.getElementById('metricDuration').setAttribute('title', `≈ ${stats.duration.toFixed(2)} hr`);
+    document.getElementById('metricDuration').setAttribute('title', `≈ ${durationH.toFixed(2)} hr`);
     
-    const hazardsCount = stats.hazards_avoided || 7;
-    document.getElementById('metricHazards').textContent = `${hazardsCount}`;
+    const energyKcal = stats.energy_kcal || Math.round((stats.energy_j || 0) / 4184);
+    const energyMj = ((stats.energy_j || 0) / 1e6).toFixed(2);
+    const metricEnergyEl = document.getElementById('metricEnergy');
+    if (metricEnergyEl) metricEnergyEl.textContent = `${energyKcal} kcal / ${energyMj} MJ`;
+
+    const o2L = stats.o2_consumed_liters || round(durationMin * 1.1, 1);
+    const o2Kg = stats.o2_consumed_kg || round(o2L * 0.001429, 3);
+    const plssPct = stats.plss_used_pct || min(100, Math.round((o2L / 840.0) * 100));
+    
+    const metricO2El = document.getElementById('metricO2');
+    if (metricO2El) metricO2El.textContent = `${o2L} L`;
+    const metricPlssPctEl = document.getElementById('metricPlssPct');
+    if (metricPlssPctEl) metricPlssPctEl.textContent = `${plssPct}% PLSS (${o2Kg}kg)`;
+
+    const losPct = stats.los_coverage_pct !== undefined ? stats.los_coverage_pct : 100.0;
+    const metricLoSEl = document.getElementById('metricLoS');
+    if (metricLoSEl) metricLoSEl.textContent = `${losPct}%`;
+
+    const glareCount = stats.glare_hazards_count || 0;
+    const shadowCount = stats.shadow_hazards_count || 0;
+    const metricSolarEl = document.getElementById('metricSolar');
+    if (metricSolarEl) metricSolarEl.textContent = `${glareCount} Glare / ${shadowCount} Shadow`;
 
     const maxSlopeLimit = parseFloat(document.getElementById('maxSlope').value);
     const slopePct = Math.min(100, Math.round((stats.max_slope / maxSlopeLimit) * 100));
@@ -584,12 +605,16 @@ function renderRoute(routeData, stats, briefingText) {
     const statusCard = document.getElementById('safetyStatusCard');
     const statusBadge = document.getElementById('statusBadge');
 
-    if (stats.max_slope <= maxSlopeLimit) {
+    const isExceedingO2 = stats.exceeds_o2_capacity || (o2L > 840);
+    const isExceedingDur = stats.exceeds_max_duration || (durationH > 8.0);
+
+    if (stats.max_slope <= maxSlopeLimit && !isExceedingO2 && !isExceedingDur) {
         statusCard.className = 'glass-panel p-2.5 rounded-lg border border-green-500/40 bg-green-500/10 flex items-center justify-between';
         statusBadge.innerHTML = `<i class="fa-solid fa-circle-check text-green-400"></i> ROUTE STATUS: GO`;
     } else {
         statusCard.className = 'glass-panel p-2.5 rounded-lg border border-yellow-500/40 bg-yellow-500/10 flex items-center justify-between';
-        statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i> ROUTE STATUS: CAUTION`;
+        let failReason = stats.max_slope > maxSlopeLimit ? 'SLOPE LIMIT EXCEEDED' : 'SUIT PLSS CONSUMABLE LIMIT EXCEEDED';
+        statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-yellow-400"></i> ROUTE STATUS: CAUTION (${failReason})`;
     }
 
     const midIdx = Math.floor(totalPts / 2);
