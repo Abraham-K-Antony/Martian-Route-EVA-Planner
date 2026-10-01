@@ -1,122 +1,124 @@
 # 🔴 Interplanetary Survival Guide: Martian Route & EVA Planner
 
-🌐 **Live Website:** [https://martian-route-eva-planner.onrender.com/](https://martian-route-eva-planner.onrender.com/)
+🌐 **Live Web Application:** [https://martian-route-eva-planner.onrender.com/](https://martian-route-eva-planner.onrender.com/)
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-brightgreen?style=for-the-badge&logo=render)](https://martian-route-eva-planner.onrender.com/)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.141-green.svg)](https://fastapi.tiangolo.com/)
-[![Gemini API](https://img.shields.io/badge/Google%20Gemini-3.8%20Flash-orange.svg)](https://ai.google.dev/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-green.svg)](https://fastapi.tiangolo.com/)
+[![Gemini API](https://img.shields.io/badge/Google%20Gemini-SDK-orange.svg)](https://ai.google.dev/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-brightgreen.svg)](https://leafletjs.com/)
+[![License](https://img.shields.io/badge/License-Copyright%20(c)%202026%20Abraham%20K%20Antony-red.svg)](#-author--copyright)
 
-
-A hybrid geospatial-graph-AI application for planning extravehicular activities (EVA) on Mars. Using Digital Elevation Models (DEMs) of **Jezero Crater**, the system computes lowest-cost traversal routes for astronauts using an $A^*$ graph search algorithm and generates NASA Flight Director safety briefings via the Google Gemini API.
-
----
-
-## 🌌 Key Features
-
-- **🗺️ Interactive Martian Map (Leaflet.js):** Centered at Jezero Crater ($18.4447^\circ\text{N}, 77.4508^\circ\text{E}$). Supports interactive **Click-to-Point** start and destination pin placement.
-- **⛰️ Terrain Slope Analysis (`rasterio` + `numpy`):** Converts 2D DEM elevation arrays into precise spatial slope grids ($\theta^\circ$).
-- **🚀 A* Graph Pathfinding Engine (`networkx`):** 8-neighbor grid graph algorithm calculating traversal costs using the formula:
-  $$C = \Delta d + (k \cdot e^{\theta})$$
-  *Slopes $>15^\circ$ (configurable) are treated as impassable hazards and automatically routed around.*
-- **🤖 NASA Mission Director AI Briefing (Google Gemini API):** Dynamic generation of xEMU suit consumable budgets ($O_2$ liters, PLSS battery kWh, cooling water), hazard analyses, and operational Go/No-Go checkpoints.
-- **📊 Real-time Profile Visualizations (Chart.js):** Interactive elevation and slope incline profile charts along the traversal route.
-- **📜 Route & Waypoint Storage (SQLite):** Caching computed GeoJSON paths, telemetry metrics, and AI briefings in `data/waypoints.sqlite`.
+A physically grounded geospatial graph engine and AI flight director for planning Extravehicular Activity (EVA) astronaut surface missions in **Jezero Crater, Mars** ($18.4447^\circ\text{N}, 77.4508^\circ\text{E}$). The system computes metabolic energy cost, travel duration, 3D communication line-of-sight (LoS), solar glare/shadow hazards, and suit PLSS consumable limits over Mars Digital Elevation Models (DEMs).
 
 ---
 
-## 🛠️ System Architecture
+## 👨‍🚀 Author & Copyright
 
-| Layer | Technology Stack | Function |
-| --- | --- | --- |
-| **Frontend** | HTML5 + TailwindCSS + Leaflet.js + Chart.js | Single-page NASA Mission Control interface with interactive satellite map and telemetry charts. |
-| **Backend API** | FastAPI + Uvicorn | RESTful API serving path calculation, DEM processing, and AI briefing generation. |
-| **Terrain Ingestion** | `rasterio` + `numpy` | Ingests Jezero Crater DEM GeoTIFF, calculates 2D surface slope arrays. |
-| **Pathfinding Engine** | `networkx` / Priority Queue A* | Graph generation and cost-optimizing route calculation. |
-| **AI Advisory** | Google Gemini API (`google-genai` SDK) | Synthesizes route metrics into a NASA Mission Flight Director Briefing. |
-| **Storage** | SQLite + GeoJSON | Caches generated paths, waypoints, and briefing documents. |
+**Lead Systems Architect & Developer:** **Abraham K Antony**  
+**Repository:** [github.com/Abraham-K-Antony/Martian-Route-EVA-Planner](https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner)  
+**Copyright:** **Copyright © 2026 Abraham K Antony. All Rights Reserved.**
+
+---
+
+## 🌌 Key Capabilities & Architecture
+
+- **⚡ Minetti Physical Metabolic Cost Model ($J/\text{m}$):** Replaced non-physical formulas with human metabolic walking expenditure scaled for **Mars gravity** ($g_{Mars} = 3.71 \text{ m/s}^2$) and **xEMU space suit movement restriction** ($1.35\times$).
+- **⏱️ Slope-Dependent Walking Speed:** Tobler/Minetti slope deceleration equation $v(i) = v_{flat} \cdot e^{-3.5|i+0.05|}$ with a $0.15\text{ m/s}$ minimum speed floor on steep inclines.
+- **🌍 IAU Mars Radius Cell Resolution:** DEM cell spacing computed using IAU Mars mean radius ($R_{Mars} = 3,389,500 \text{ m}$) for exact meter-scale resolution ($38.4\text{m/px}$).
+- **📡 3D Multi-Station RF Comms Mesh:** Scans Line-of-Sight (LoS) ray casting across multiple active base stations (*Perseverance Rover*, *Ingenuity Airfield*, *Jezero Rim Tower*) and flags radio dead zones.
+- **☀️ Solar Geometry & Aspect Angle:** Computes 2D downhill aspect angle $\phi_{aspect} \in [0^\circ, 360^\circ]$ and local Mars solar time (Azimuth $225^\circ$, Elevation $45^\circ$) to flag direct sun-facing glare and deep shadow freezing hazards.
+- **🎛️ 5 Multi-Route Strategies:**
+  1. ⚡ **`lowest_energy`**: Minimizes total metabolic Joules ($J$) & kilocalories ($\text{kcal}$).
+  2. ⏱️ **`fastest`**: Minimizes total traversal duration (hours/minutes).
+  3. 🛡️ **`safest`**: Applies exponential penalty to slopes above $8^\circ$.
+  4. 📡 **`comms_safe`**: Prioritizes open ridges with 3D Line-of-Sight RF coverage to avoid dead zones.
+  5. 📜 **`legacy`**: Comparison path using the original penalty formula.
+- **🔄 Round-Trip & Point of No Return (PoNR):** Out-and-back EVA calculation with mandatory $50\%$ return consumable reserve buffer and Point of No Return waypoint index tracking.
+- **🤖 NASA Flight Director Gemini AI Briefing:** Ultra-fast ($<2.0\text{s}$ timeout) AI hazard briefing with automatic fallback to structured offline telemetry.
+- **🔒 Private Client API Key Isolation:** Gemini API keys are saved strictly in the browser's private `localStorage` (`mars_user_gemini_api_key`) and never logged or stored on the server.
+
+---
+
+## 📐 Mathematical Models & Equations
+
+### 1. Minetti Metabolic Energy Expenditure ($J/\text{m}$)
+$$C(i) = M_{total} \times \max\left(1.2, 280.5 i^5 - 58.7 i^4 - 76.8 i^3 + 26.8 i^2 + 19.6 i + 2.5\right) \times \left(\frac{g_{Mars}}{g_{Earth}}\right) \times \text{suit\_factor}$$
+where $M_{total} = 220\text{ kg}$ (80 kg astronaut + 140 kg xEMU suit), $g_{Mars}/g_{Earth} = 0.378$, and $\text{suit\_factor} = 1.35$.
+
+### 2. Slope-Dependent Walking Speed ($m/s$)
+$$v(i) = v_{flat} \cdot e^{-3.5 |i + 0.05|}$$
+where $i = \tan(\text{slope})$ and $v_{flat} = \text{base speed in m/s}$.
+
+### 3. IAU Mars Cell Size Calculation ($m$)
+$$dy = \Delta\text{lat} \cdot \frac{\pi}{180} \cdot 3389500, \quad dx = \Delta\text{lon} \cdot \frac{\pi}{180} \cdot 3389500 \cdot \cos(\text{lat}_{center})$$
+
+### 4. Terrain Aspect Angle ($\phi_{aspect}$)
+$$\phi_{aspect} = \arctan2\left(-\frac{\partial z}{\partial x}, -\frac{\partial z}{\partial y}\right) \pmod{360^\circ}$$
 
 ---
 
 ## 📂 Directory Structure
 
 ```text
-d:/Nasa Space Apps/
+Martian-Route-EVA-Planner/
+├── core/
+│   ├── eva_safety.py         # Metabolic O2, PLSS limits, solar aspect, 3D LoS mesh & PoNR
+│   ├── pathfinder.py         # 5-mode A* pathfinding engine over Mars DEM
+│   ├── terrain_processor.py  # Rasterio GeoTIFF DEM parser & IAU Mars cell resolution
+│   ├── ai_briefing.py        # Gemini AI flight director prompt & fast 2.0s fallback caller
+│   └── storage.py            # SQLite database store & Jezero crater mission presets
 │
 ├── data/
-│   ├── jezero_dem_downsampled.tif   # Mars Digital Elevation Model GeoTIFF
-│   └── waypoints.sqlite             # SQLite cache database for routes & presets
-│
-├── core/
-│   ├── terrain_processor.py         # DEM raster ingestion & slope grid computation
-│   ├── pathfinder.py                # Graph construction & A* pathfinding engine
-│   ├── ai_briefing.py               # Gemini API integration & NASA Flight Director prompt
-│   └── storage.py                   # SQLite storage & route history interface
+│   ├── jezero_dem_downsampled.tif  # High-resolution Jezero Crater GeoTIFF DEM
+│   └── waypoints.sqlite            # SQLite route history & waypoint database
 │
 ├── static/
-│   ├── css/
-│   │   └── style.css                # Custom glassmorphism tactical CSS
-│   ├── js/
-│   │   └── app.js                   # Client-side map, chart, and REST API logic
-│   └── index.html                   # Main single-page web dashboard
+│   ├── js/app.js             # Client-side map, chart hover sync, and REST API controller
+│   └── index.html            # NASA Mission Control dashboard with glassmorphism UI
 │
-├── main.py                          # FastAPI backend application entry point
-├── app.py                           # Legacy Streamlit entry point
-├── requirements.txt                 # Dependencies manifest
-├── .env                             # Environment configuration (GEMINI_API_KEY)
-└── README.md                        # Project documentation
+├── tests/
+│   ├── test_pathfinder.py    # Unit tests for A* pathfinding & Minetti cost equations
+│   ├── test_eva_safety.py    # Unit tests for EVASafetyAnalyzer & LoS mesh
+│   └── test_api.py           # Integration tests for FastAPI endpoints & HTTP 422 errors
+│
+├── main.py                   # FastAPI application server entry point
+├── render.yaml               # Render cloud web service deployment manifest
+├── Dockerfile                # Docker container build script
+├── requirements.txt          # Python dependencies manifest
+└── README.md                 # System documentation & technical guide
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Installation & Local Setup
 
-### 1. Prerequisites
-- **Python 3.11+** installed on your system.
-- **Google Gemini API Key** (Get one at [Google AI Studio](https://aistudio.google.com/)).
-
-### 2. Environment Setup
-
-Clone or open the project directory, then create a virtual environment:
-
+### 1. Clone & Setup Virtual Environment
 ```bash
-# Create virtual environment
-py -3.11 -m venv venv
+git clone https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner.git
+cd Martian-Route-EVA-Planner
 
-# Activate virtual environment
-# Windows (PowerShell):
-.\venv\Scripts\Activate.ps1
-# Linux / macOS:
-source venv/bin/activate
+# Create & activate Python 3.11 virtual environment
+py -3.11 -m venv venv
+.\venv\Scripts\Activate.ps1   # Windows PowerShell
+# source venv/bin/activate    # Linux / macOS
 ```
 
-### 3. Install Dependencies
-
+### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure API Key
-
-Create a `.env` file in the project root:
-
-```env
-GEMINI_API_KEY=your_actual_gemini_api_key_here
-```
-
----
-
-## 🚀 Running the Application
-
-Start the **FastAPI + Uvicorn** server:
-
+### 3. Run FastAPI Application Server
 ```bash
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
+Open your browser at: **`http://localhost:8000`**
 
-Open your browser and navigate to:
-👉 **`http://localhost:8000`**
+### 4. Run Automated Test Suite
+```bash
+python -m pytest -v tests/
+```
 
 ---
 
@@ -124,13 +126,13 @@ Open your browser and navigate to:
 
 | Endpoint | Method | Description |
 | --- | --- | --- |
-| `GET /` | `GET` | Serves the main NASA Mission Control web UI. |
-| `GET /api/presets` | `GET` | Returns predefined Jezero Crater waypoints (Landing site, Delta, Rim). |
+| `GET /` | `GET` | Serves the main NASA Mission Control Web Interface. |
+| `GET /api/presets` | `GET` | Returns 7 Jezero Crater Mission Presets (Landing Site, Delta, Rim, Bedrock). |
 | `GET /api/routes/cached` | `GET` | Returns recent cached EVA routes from SQLite database. |
-| `POST /api/route/calculate` | `POST` | Calculates optimal A* route and generates Gemini AI briefing. |
+| `POST /api/route/calculate` | `POST` | Computes 5 multi-route options & generates Gemini AI Safety Briefing. |
+| `GET /api/watermark` | `GET` | Developer Verification Endpoint confirming authentic authorship signature. |
 
-### Example Request (`POST /api/route/calculate`)
-
+### Sample Route Request (`POST /api/route/calculate`)
 ```json
 {
   "start_lat": 18.4447,
@@ -139,27 +141,17 @@ Open your browser and navigate to:
   "end_lon": 77.4180,
   "penalty_k": 10.0,
   "max_slope_deg": 15.0,
-  "walking_speed_kmh": 3.5
+  "preferred_slope_deg": 8.0,
+  "walking_speed_kmh": 3.5,
+  "is_round_trip": true,
+  "start_name": "Perseverance Landing Site",
+  "end_name": "Neretva Delta Edge"
 }
 ```
 
 ---
 
-## 📐 Cost Function & Pathfinding Logic
+## 📜 License & Citation
 
-The traversal cost $C$ between adjacent grid nodes $u$ and $v$ is computed as:
-
-$$C = \Delta d + (k \cdot e^{\theta})$$
-
-where:
-- $\Delta d$ is the physical step distance between grid cell centers in meters ($1.0 \times \text{cell size}$ for cardinal steps, $\sqrt{2} \times \text{cell size}$ for diagonal steps).
-- $k$ is the slope penalty multiplier (user configurable via slider).
-- $\theta$ is the surface slope angle in degrees.
-- If $\theta > \text{max slope}$ ($15^\circ$ default), the cost is set to $\infty$ (impassable cliff/wall).
-
-
----
-
-## 📜 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+**Copyright © 2026 Abraham K Antony. All Rights Reserved.**  
+Developed for interplanetary surface exploration, autonomous rover navigation, and astronaut Extravehicular Activity (EVA) safety.
