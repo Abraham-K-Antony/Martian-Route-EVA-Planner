@@ -206,47 +206,63 @@
 
             <!-- 02 ROUTE STRATEGY -->
             <div class="glass-panel p-3 rounded-lg border border-mars-border">
-                <label class="block text-xs font-bold text-mars-neon uppercase tracking-wider mb-2 flex items-center gap-1.5 font-mono">
-                    <span class="text-green-400">✓</span> 02 ROUTE STRATEGY
+                <label class="block text-xs font-bold text-mars-neon uppercase tracking-wider mb-2 flex items-center justify-between font-mono">
+                    <span><span class="text-green-400">✓</span> 02 ROUTE STRATEGY</span>
+                    <label class="flex items-center gap-1 cursor-pointer text-[10px] text-mars-accent lowercase font-normal">
+                        <input type="checkbox" id="isRoundTrip" onchange="onConstraintChange()" class="accent-mars-accent">
+                        <span class="font-bold font-mono uppercase text-white">🔄 Round Trip</span>
+                    </label>
                 </label>
-                <div class="grid grid-cols-3 gap-1.5 text-center font-mono">
-                    <button id="modeSafest" onclick="setRouteMode('safest')" class="p-2 sm:p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[11px]">
-                        <div class="font-bold">🛡️ SAFEST</div>
-                        <div class="text-[9px] text-gray-500">Low slope</div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 text-center font-mono">
+                    <button id="modeEnergy" onclick="setRouteMode('lowest_energy')" class="p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white font-bold transition text-[10px]">
+                        <div>⚡ ENERGY</div>
+                        <div class="text-[8px] text-gray-300">Minetti Model</div>
                     </button>
-                    <button id="modeBalanced" onclick="setRouteMode('balanced')" class="p-2 sm:p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white transition text-[11px]">
-                        <div class="font-bold text-mars-accent">⚖️ BALANCED</div>
-                        <div class="text-[9px] text-gray-400">Risk/time</div>
+                    <button id="modeFastest" onclick="setRouteMode('fastest')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
+                        <div>⏱️ FASTEST</div>
+                        <div class="text-[8px] text-gray-500">Min Time</div>
                     </button>
-                    <button id="modeFastest" onclick="setRouteMode('fastest')" class="p-2 sm:p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[11px]">
-                        <div class="font-bold">⚡ FASTEST</div>
-                        <div class="text-[9px] text-gray-500">Min travel</div>
+                    <button id="modeSafest" onclick="setRouteMode('safest')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
+                        <div>🛡️ SAFEST</div>
+                        <div class="text-[8px] text-gray-500">Low Slope</div>
+                    </button>
+                    <button id="modeLegacy" onclick="setRouteMode('legacy')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
+                        <div>📜 LEGACY</div>
+                        <div class="text-[8px] text-gray-500">Old Formula</div>
                     </button>
                 </div>
             </div>
 
             <!-- 03 TERRAIN CONSTRAINTS -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border space-y-2.5 text-xs">
-                <label class="block font-bold text-mars-neon uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                    <span class="text-green-400">✓</span> 03 TERRAIN CONSTRAINTS
+            <div class="glass-panel p-3 rounded-lg border border-mars-border space-y-2 text-xs">
+                <label class="block font-bold text-mars-neon uppercase tracking-wider flex items-center justify-between font-mono">
+                    <span><span class="text-green-400">✓</span> 03 TERRAIN CONSTRAINTS</span>
+                    <span id="resBadge" class="text-[9px] text-mars-neon font-mono font-normal">38.4m/px</span>
                 </label>
                 <div>
                     <div class="flex justify-between text-gray-300 mb-1">
-                        <span>Max Slope Barrier:</span>
+                        <span>Max Slope Barrier (Hard):</span>
                         <span id="slopeVal" class="font-mono text-yellow-400 font-bold">15.0°</span>
                     </div>
-                    <input type="range" id="maxSlope" min="5" max="25" value="15" step="1" class="w-full accent-yellow-400 h-2">
+                    <input type="range" id="maxSlope" min="5" max="25" value="15" step="1" class="w-full accent-yellow-400 h-1.5">
                 </div>
                 <div>
                     <div class="flex justify-between text-gray-300 mb-1">
-                        <span>Slope Penalty (k):</span>
+                        <span>Preferred Slope Band (Soft):</span>
+                        <span id="prefSlopeVal" class="font-mono text-green-400 font-bold">8.0°</span>
+                    </div>
+                    <input type="range" id="prefSlope" min="3" max="14" value="8" step="1" class="w-full accent-green-400 h-1.5">
+                </div>
+                <div id="kPenaltyContainer">
+                    <div class="flex justify-between text-gray-300 mb-1">
+                        <span>Legacy Penalty (k):</span>
                         <span id="kVal" class="font-mono text-mars-accent font-bold">10.0</span>
                     </div>
-                    <input type="range" id="penaltyK" min="1" max="30" value="10" step="1" class="w-full accent-mars-accent h-2">
+                    <input type="range" id="penaltyK" min="1" max="30" value="10" step="1" class="w-full accent-mars-accent h-1.5">
                 </div>
                 <div>
                     <span class="text-gray-400">Astronaut Walking Speed (km/h):</span>
-                    <input type="number" id="walkingSpeed" value="3.5" step="0.5" min="1" max="10" class="w-full bg-mars-dark border border-mars-border rounded p-2 text-xs text-white mt-1">
+                    <input type="number" id="walkingSpeed" value="3.5" step="0.5" min="1" max="10" class="w-full bg-mars-dark border border-mars-border rounded p-1.5 text-xs text-white mt-0.5">
                 </div>
             </div>
 

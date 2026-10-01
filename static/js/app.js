@@ -40,8 +40,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('maxSlope').addEventListener('input', (e) => {
         const val = parseFloat(e.target.value).toFixed(1);
         document.getElementById('slopeVal').textContent = `${val}°`;
-        document.getElementById('limitSlopeText').textContent = `${val}°`;
+        const limitText = document.getElementById('limitSlopeText');
+        if (limitText) limitText.textContent = `${val}°`;
     });
+
+    const prefSlopeEl = document.getElementById('prefSlope');
+    if (prefSlopeEl) {
+        prefSlopeEl.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value).toFixed(1);
+            const badge = document.getElementById('prefSlopeVal');
+            if (badge) badge.textContent = `${val}°`;
+        });
+    }
 
     document.getElementById('startPreset').addEventListener('change', onPresetChange);
     document.getElementById('endPreset').addEventListener('change', onPresetChange);
@@ -348,34 +358,43 @@ function toggleMapLayers() {
     }
 }
 
+let currentSelectedMode = 'lowest_energy';
+let cachedMultiRoutes = null;
+let cachedBriefing = "";
+
 // 2. Route Strategy Modes
 function setRouteMode(mode) {
-    const btnSafest = document.getElementById('modeSafest');
-    const btnBalanced = document.getElementById('modeBalanced');
-    const btnFastest = document.getElementById('modeFastest');
+    currentSelectedMode = mode;
 
-    [btnSafest, btnBalanced, btnFastest].forEach(b => {
-        b.className = 'p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[11px]';
+    const btnEnergy = document.getElementById('modeEnergy');
+    const btnFastest = document.getElementById('modeFastest');
+    const btnSafest = document.getElementById('modeSafest');
+    const btnLegacy = document.getElementById('modeLegacy');
+    const kContainer = document.getElementById('kPenaltyContainer');
+
+    [btnEnergy, btnFastest, btnSafest, btnLegacy].forEach(b => {
+        if (b) b.className = 'p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]';
     });
 
-    if (mode === 'safest') {
-        btnSafest.className = 'p-1.5 rounded border border-green-500 bg-green-500/20 text-white font-bold transition text-[11px]';
-        document.getElementById('penaltyK').value = 25;
-        document.getElementById('maxSlope').value = 12;
-    } else if (mode === 'fastest') {
-        btnFastest.className = 'p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white font-bold transition text-[11px]';
-        document.getElementById('penaltyK').value = 2;
-        document.getElementById('maxSlope').value = 18;
-    } else {
-        btnBalanced.className = 'p-1.5 rounded border border-mars-neon bg-mars-neon/20 text-white font-bold transition text-[11px]';
-        document.getElementById('penaltyK').value = 10;
-        document.getElementById('maxSlope').value = 15;
+    if (mode === 'lowest_energy' && btnEnergy) {
+        btnEnergy.className = 'p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white font-bold transition text-[10px]';
+        if (kContainer) kContainer.classList.add('hidden');
+    } else if (mode === 'fastest' && btnFastest) {
+        btnFastest.className = 'p-1.5 rounded border border-yellow-500 bg-yellow-500/20 text-white font-bold transition text-[10px]';
+        if (kContainer) kContainer.classList.add('hidden');
+    } else if (mode === 'safest' && btnSafest) {
+        btnSafest.className = 'p-1.5 rounded border border-green-500 bg-green-500/20 text-white font-bold transition text-[10px]';
+        if (kContainer) kContainer.classList.add('hidden');
+    } else if (mode === 'legacy' && btnLegacy) {
+        btnLegacy.className = 'p-1.5 rounded border border-purple-500 bg-purple-500/20 text-white font-bold transition text-[10px]';
+        if (kContainer) kContainer.classList.remove('hidden');
     }
 
-    document.getElementById('kVal').textContent = parseFloat(document.getElementById('penaltyK').value).toFixed(1);
-    const slopeVal = parseFloat(document.getElementById('maxSlope').value).toFixed(1);
-    document.getElementById('slopeVal').textContent = `${slopeVal}°`;
-    document.getElementById('limitSlopeText').textContent = `${slopeVal}°`;
+    if (cachedMultiRoutes && cachedMultiRoutes[mode]) {
+        const routeObj = cachedMultiRoutes[mode];
+        renderRoute(routeObj, routeObj.stats, cachedBriefing);
+        showToast(`Displayed route option: ${mode.toUpperCase().replace('_', ' ')}`, "info", "ROUTE VIEW CHANGED");
+    }
 }
 
 // 3. Presets
@@ -436,6 +455,8 @@ async function computeRoute() {
     const endLon = parseFloat(document.getElementById('endLon').value);
     const penaltyK = parseFloat(document.getElementById('penaltyK').value);
     const maxSlope = parseFloat(document.getElementById('maxSlope').value);
+    const prefSlope = parseFloat(document.getElementById('prefSlope')?.value || 8.0);
+    const isRoundTrip = document.getElementById('isRoundTrip')?.checked || false;
     const walkingSpeed = parseFloat(document.getElementById('walkingSpeed').value);
     
     // Retrieve client-side private API key from localStorage if set
@@ -462,7 +483,9 @@ async function computeRoute() {
                 end_lon: endLon,
                 penalty_k: penaltyK,
                 max_slope_deg: maxSlope,
+                preferred_slope_deg: prefSlope,
                 walking_speed_kmh: walkingSpeed,
+                is_round_trip: isRoundTrip,
                 api_key: apiKey,
                 start_name: startName,
                 end_name: endName
@@ -476,7 +499,10 @@ async function computeRoute() {
             return;
         }
 
-        renderRoute(data.route_data, data.path_stats, data.briefing);
+        cachedMultiRoutes = data.multi_routes;
+        cachedBriefing = data.briefing;
+        const selectedRoute = data.multi_routes?.[currentSelectedMode] || data.route_data;
+        renderRoute(selectedRoute, selectedRoute.stats || data.path_stats, data.briefing);
         loadCachedRoutes();
         showToast("Optimal EVA route & NASA Gemini briefing calculated!", "success", "ROUTE COMPUTED");
     } catch (err) {

@@ -1,6 +1,6 @@
 import os
 import dotenv
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +10,7 @@ from typing import Tuple, Dict, List, Optional
 # Load environment variables
 dotenv.load_dotenv()
 
-from core.pathfinder import calculate_route
+from core.pathfinder import MartianPathfinder, calculate_route
 from core.ai_briefing import generate_eva_briefing
 from core.storage import save_route, get_cached_routes, get_preset_waypoints
 
@@ -21,8 +21,6 @@ from core.storage import save_route, get_cached_routes, get_preset_waypoints
 
 __author__ = "Abraham K Antony"
 __copyright__ = "Copyright (c) 2026 Abraham K Antony"
-
-from fastapi import Request
 
 app = FastAPI(
     title="Martian Route & EVA Planner API",
@@ -53,7 +51,6 @@ STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-
 class RouteRequest(BaseModel):
     start_lat: float = Field(..., example=18.4447)
     start_lon: float = Field(..., example=77.4508)
@@ -61,7 +58,9 @@ class RouteRequest(BaseModel):
     end_lon: float = Field(..., example=77.4180)
     penalty_k: float = Field(10.0, example=10.0)
     max_slope_deg: float = Field(15.0, example=15.0)
+    preferred_slope_deg: float = Field(8.0, example=8.0)
     walking_speed_kmh: float = Field(3.5, example=3.5)
+    is_round_trip: bool = Field(False, example=False)
     api_key: Optional[str] = None
     start_name: Optional[str] = "Custom Point A"
     end_name: Optional[str] = "Custom Point B"
@@ -81,8 +80,6 @@ async def favicon():
     from fastapi.responses import Response
     return Response(content=svg_content, media_type="image/svg+xml")
 
-
-
 @app.get("/api/presets")
 async def get_presets():
     """Get predefined Jezero Crater waypoints."""
@@ -96,27 +93,34 @@ async def get_cached():
 @app.post("/api/route/calculate")
 async def calculate_eva_route(req: RouteRequest):
     """
-    Calculates A* optimal EVA route over Mars DEM grid 
-    and generates Gemini AI Mission Flight Director briefing.
+    Calculates physical Minetti metabolic A* EVA routes over Mars DEM grid 
+    (Lowest Energy, Fastest, Safest, Legacy) and generates Gemini AI briefing.
     """
     try:
         start_pt = (req.start_lat, req.start_lon)
         end_pt = (req.end_lat, req.end_lon)
         
-        # 1. Compute A* Path & Metrics
-        route_data, path_stats = calculate_route(
+        pathfinder = MartianPathfinder()
+        multi_result = pathfinder.calculate_all_routes(
             start_pt,
             end_pt,
             penalty_k=req.penalty_k,
             max_slope_deg=req.max_slope_deg,
-            walking_speed_kmh=req.walking_speed_kmh
+            preferred_slope_deg=req.preferred_slope_deg,
+            walking_speed_kmh=req.walking_speed_kmh,
+            is_round_trip=req.is_round_trip
         )
         
-        # 2. Generate Gemini AI Safety Briefing
+        rec_mode = multi_result["recommended"]
+        rec_route = multi_result["routes"][rec_mode]
+        route_data = rec_route
+        path_stats = rec_route["stats"]
+        
+        # Generate Gemini AI Safety Briefing
         briefing = generate_eva_briefing(path_stats, api_key=req.api_key)
         
-        # 3. Cache Route in SQLite
-        route_name = f"{req.start_name} ➔ {req.end_name}"
+        # Cache Route in SQLite
+        route_name = f"{req.start_name} ➔ {req.end_name}" + (" (Round Trip)" if req.is_round_trip else "")
         save_route(route_name, start_pt, end_pt, path_stats, route_data['geojson'], briefing)
         
         return {
@@ -126,12 +130,14 @@ async def calculate_eva_route(req: RouteRequest):
                 "repository": "https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner",
                 "signature": "AUTHENTIC-ABRAHAM-K-ANTONY-2026"
             },
+            "multi_routes": multi_result["routes"],
+            "recommended_mode": rec_mode,
             "route_data": route_data,
             "path_stats": path_stats,
             "briefing": briefing
         }
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise HTTPException(status_code=422, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Server pathfinding error: {str(e)}")
 
@@ -150,4 +156,3 @@ async def get_system_watermark():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-

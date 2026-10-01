@@ -1,13 +1,19 @@
 import os
+import math
 import numpy as np
 import rasterio
 from rasterio.transform import from_origin
 from typing import Tuple, Dict, Optional, List
 
 DEFAULT_DEM_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "jezero_dem_downsampled.tif")
+MARS_RADIUS_M = 3389500.0  # IAU Mars mean radius in meters
 
 class DEMProcessor:
-    """Ingests and parses Mars Digital Elevation Models (DEMs) and computes slopes."""
+    """
+    Ingests and parses Mars Digital Elevation Models (DEMs),
+    calculates accurate meter-scale cell sizes based on Mars radius,
+    and computes slope and terrain hazard masks.
+    """
     
     def __init__(self, dem_path: str = DEFAULT_DEM_PATH):
         self.dem_path = dem_path
@@ -21,21 +27,67 @@ class DEMProcessor:
         self.crs = self.dataset.crs
         self.height, self.width = self.elevation_grid.shape
         
-        # Calculate cell resolution in meters (approx at Jezero latitude 18.44 deg N)
-        # 1 deg lat ~= 59.26 km on Mars (Mars radius ~ 3389.5 km)
-        # 1 deg lon at 18.44 deg N ~= 59.26 * cos(18.44 deg) ~= 56.22 km
-        lat_res = abs(self.transform.e) * 59260.0 # meters per pixel lat
-        lon_res = abs(self.transform.a) * 56220.0 # meters per pixel lon
-        self.cell_size_m = float((lat_res + lon_res) / 2.0)
+        # Determine CRS units and calculate physical cell resolution in meters using Mars Radius
+        self.dy_m, self.dx_m, self.effective_resolution_m = self._calculate_mars_cell_resolution()
         
-        # Compute slope grid in degrees
-        self.slope_grid = self._compute_slope_grid(lat_res, lon_res)
+        # Compute slope grid in degrees using true physical dy_m and dx_m spacings
+        self.slope_grid = self._compute_slope_grid()
+        
+        # Terrain Hazard Mask (Rock Scree / Soft Sand Ripples)
+        self.hazard_mask = self._generate_hazard_mask()
 
-    def _compute_slope_grid(self, lat_res: float, lon_res: float) -> np.ndarray:
-        """Calculates 2D slope array in degrees using gradient vector components."""
-        dy, dx = np.gradient(self.elevation_grid, lat_res, lon_res)
+    def _calculate_mars_cell_resolution(self) -> Tuple[float, float, float]:
+        """
+        Calculates physical cell dimensions (dy_m, dx_m) in meters.
+        For geographic CRS (degrees), uses Mars radius R_mars = 3,389,500 m.
+        """
+        # Check if CRS is projected (meters) or geographic (degrees)
+        is_geographic = True
+        if self.crs:
+            crs_str = str(self.crs).lower()
+            if "proj=" in crs_str and "longlat" not in crs_str:
+                is_geographic = False
+            elif "epsg:" in crs_str and crs_str not in ["epsg:4326", "epsg:4988"]:
+                is_geographic = False
+        
+        deg_lat = abs(self.transform.e)
+        deg_lon = abs(self.transform.a)
+        
+        if is_geographic:
+            # Center latitude for longitude cosine scaling
+            center_lat = (self.bounds.bottom + self.bounds.top) / 2.0
+            lat_rad = math.radians(center_lat)
+            
+            dy_m = deg_lat * (math.pi / 180.0) * MARS_RADIUS_M
+            dx_m = deg_lon * (math.pi / 180.0) * MARS_RADIUS_M * math.cos(lat_rad)
+        else:
+            dy_m = deg_lat
+            dx_m = deg_lon
+            
+        effective_res_m = float((dy_m + dx_m) / 2.0)
+        return float(dy_m), float(dx_m), effective_res_m
+
+    def _compute_slope_grid(self) -> np.ndarray:
+        """Calculates 2D slope array in degrees using physical dy_m and dx_m spacings."""
+        dy, dx = np.gradient(self.elevation_grid, self.dy_m, self.dx_m)
         slope_rad = np.arctan(np.sqrt(dx**2 + dy**2))
         return np.degrees(slope_rad)
+
+    def _generate_hazard_mask(self) -> np.ndarray:
+        """
+        Generates a terrain surface hazard cost multiplier layer
+        (1.0 = nominal regolith, 1.4 = soft sand ripples, 2.2 = basalt rock scree).
+        """
+        # Data-driven hazard simulation based on elevation curvature and noise texture
+        gy, gx = np.gradient(self.slope_grid)
+        curvature = np.sqrt(gx**2 + gy**2)
+        
+        mask = np.ones((self.height, self.width), dtype=np.float32)
+        # Moderate curvature -> Sand ripples (1.4x energy cost)
+        mask[curvature > 0.5] = 1.4
+        # High curvature / steep micro-texture -> Dense rock scree (2.2x energy cost)
+        mask[curvature > 1.2] = 2.2
+        return mask
 
     def latlon_to_rowcol(self, lat: float, lon: float) -> Tuple[int, int]:
         """Convert Latitude/Longitude to array (row, col) indices."""
@@ -60,7 +112,7 @@ class DEMProcessor:
         return float(self.slope_grid[r, c])
 
     def get_sub_grid(self, start_latlon: Tuple[float, float], end_latlon: Tuple[float, float], 
-                     buffer_px: int = 15) -> Dict:
+                     buffer_px: int = 25) -> Dict:
         """
         Extracts a focused spatial sub-grid around start and end points to 
         optimize graph construction and memory footprint.
@@ -75,32 +127,34 @@ class DEMProcessor:
         
         sub_elev = self.elevation_grid[min_r:max_r, min_c:max_c]
         sub_slope = self.slope_grid[min_r:max_r, min_c:max_c]
+        sub_hazard = self.hazard_mask[min_r:max_r, min_c:max_c]
         
-        # Local sub-grid start & end indices
         local_start = (r1 - min_r, c1 - min_c)
         local_end = (r2 - min_r, c2 - min_c)
         
         return {
             "elevation": sub_elev,
             "slope": sub_slope,
+            "hazard": sub_hazard,
             "min_r": min_r,
             "min_c": min_c,
             "local_start": local_start,
             "local_end": local_end,
-            "cell_size_m": self.cell_size_m
+            "dy_m": self.dy_m,
+            "dx_m": self.dx_m,
+            "effective_resolution_m": self.effective_resolution_m
         }
 
     def generate_synthetic_jezero_dem(self):
         """
-        Generates a realistic Digital Elevation Model (DEM) of Jezero Crater, Mars 
+        Generates a high-resolution Digital Elevation Model (DEM) of Jezero Crater, Mars 
         with realistic crater rims, delta channel deposits, and terrain noise, 
         saved as a GeoTIFF if no dataset exists.
         """
         os.makedirs(os.path.dirname(self.dem_path), exist_ok=True)
         
-        # Grid parameters: 300x300 pixels covering Jezero Crater region
-        # Bounds: Lat [18.35, 18.55], Lon [77.35, 77.55]
-        height, width = 300, 300
+        # Grid parameters: 350x350 pixels covering Jezero Crater region
+        height, width = 350, 350
         min_lat, max_lat = 18.35, 18.55
         min_lon, max_lon = 77.35, 77.55
         
@@ -113,26 +167,26 @@ class DEMProcessor:
         
         # 1. Jezero Crater Rim (~45 km diameter crater centered at 18.4447 N, 77.4508 E)
         center_lat, center_lon = 18.4447, 77.4508
-        dist_from_center = np.sqrt(((lat_mg - center_lat) * 59.26)**2 + ((lon_mg - center_lon) * 56.22)**2) # in km
+        dist_from_center = np.sqrt(((lat_mg - center_lat) * 59.16)**2 + ((lon_mg - center_lon) * 56.12)**2) # in km
         
-        # Rim wall profile at r ~= 22 km
+        # Rim wall profile
         rim_mask = dist_from_center >= 18.0
-        rim_elevation = -2550.0 + 350.0 * (1.0 / (1.0 + np.exp(-(dist_from_center - 21.0)*0.8)))
+        rim_elevation = -2550.0 + 380.0 * (1.0 / (1.0 + np.exp(-(dist_from_center - 21.0)*0.8)))
         elev[rim_mask] = rim_elevation[rim_mask]
         
         # 2. Neretva Vallis River Delta deposit in Western Sector (~18.455 N, 77.418 E)
-        delta_dist = np.sqrt(((lat_mg - 18.455) * 59.26)**2 + ((lon_mg - 77.418) * 56.22)**2)
-        delta_fan = 80.0 * np.exp(-(delta_dist / 3.0)**2)
+        delta_dist = np.sqrt(((lat_mg - 18.455) * 59.16)**2 + ((lon_mg - 77.418) * 56.12)**2)
+        delta_fan = 85.0 * np.exp(-(delta_dist / 3.0)**2)
         elev += delta_fan
         
         # 3. Belva Impact Crater (~18.428 N, 77.465 E)
-        belva_dist = np.sqrt(((lat_mg - 18.428) * 59.26)**2 + ((lon_mg - 77.465) * 56.22)**2)
-        belva_pit = -120.0 * np.exp(-(belva_dist / 1.2)**2)
+        belva_dist = np.sqrt(((lat_mg - 18.428) * 59.16)**2 + ((lon_mg - 77.465) * 56.22)**2)
+        belva_pit = -130.0 * np.exp(-(belva_dist / 1.2)**2)
         elev += belva_pit
         
         # 4. Geological surface micro-texture noise
         rng = np.random.default_rng(42)
-        noise = rng.normal(0, 4.0, size=(height, width))
+        noise = rng.normal(0, 3.5, size=(height, width))
         elev += noise
         
         # Define spatial affine transform
