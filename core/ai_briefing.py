@@ -1,6 +1,14 @@
 import os
+import logging
+import warnings
 import concurrent.futures
 from typing import Dict, Optional
+
+# Suppress SDK deprecation and AFC model warnings
+logging.getLogger("google.genai").setLevel(logging.ERROR)
+logging.getLogger("google").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message=".*automatic function calling.*")
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def _call_gemini_fast(prompt: str, key: str) -> Optional[str]:
     """Internal fast caller targeting active Gemini model."""
@@ -20,7 +28,7 @@ def _call_gemini_fast(prompt: str, key: str) -> Optional[str]:
 def generate_eva_briefing(stats: Dict, api_key: Optional[str] = None) -> str:
     """
     Generates a NASA Flight Director EVA Hazard Briefing.
-    Prioritizes ultra-fast <0.1s response. Uses ThreadPoolExecutor with a 2.0s hard cap.
+    Prioritizes ultra-fast response. Uses ThreadPoolExecutor with a 2.0s hard cap.
     If Gemini API takes >2.0s, rate-limited, or unavailable, instantly returns the
     structured NASA telemetry briefing.
     """
