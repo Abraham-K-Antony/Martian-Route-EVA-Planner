@@ -21,7 +21,7 @@ class DEMProcessor:
             self.generate_synthetic_jezero_dem()
         
         self.dataset = rasterio.open(self.dem_path)
-        self.elevation_grid = self.dataset.read(1)
+        self.elevation_grid = self.dataset.read(1).astype(np.float32)
         self.transform = self.dataset.transform
         self.bounds = self.dataset.bounds
         self.crs = self.dataset.crs
@@ -41,7 +41,6 @@ class DEMProcessor:
         Calculates physical cell dimensions (dy_m, dx_m) in meters.
         For geographic CRS (degrees), uses Mars radius R_mars = 3,389,500 m.
         """
-        # Check if CRS is projected (meters) or geographic (degrees)
         is_geographic = True
         if self.crs:
             crs_str = str(self.crs).lower()
@@ -54,7 +53,6 @@ class DEMProcessor:
         deg_lon = abs(self.transform.a)
         
         if is_geographic:
-            # Center latitude for longitude cosine scaling
             center_lat = (self.bounds.bottom + self.bounds.top) / 2.0
             lat_rad = math.radians(center_lat)
             
@@ -71,21 +69,18 @@ class DEMProcessor:
         """Calculates 2D slope array in degrees using physical dy_m and dx_m spacings."""
         dy, dx = np.gradient(self.elevation_grid, self.dy_m, self.dx_m)
         slope_rad = np.arctan(np.sqrt(dx**2 + dy**2))
-        return np.degrees(slope_rad)
+        return np.degrees(slope_rad).astype(np.float32)
 
     def _generate_hazard_mask(self) -> np.ndarray:
         """
         Generates a terrain surface hazard cost multiplier layer
         (1.0 = nominal regolith, 1.4 = soft sand ripples, 2.2 = basalt rock scree).
         """
-        # Data-driven hazard simulation based on elevation curvature and noise texture
         gy, gx = np.gradient(self.slope_grid)
         curvature = np.sqrt(gx**2 + gy**2)
         
         mask = np.ones((self.height, self.width), dtype=np.float32)
-        # Moderate curvature -> Sand ripples (1.4x energy cost)
         mask[curvature > 0.5] = 1.4
-        # High curvature / steep micro-texture -> Dense rock scree (2.2x energy cost)
         mask[curvature > 1.2] = 2.2
         return mask
 
@@ -112,7 +107,7 @@ class DEMProcessor:
         return float(self.slope_grid[r, c])
 
     def get_sub_grid(self, start_latlon: Tuple[float, float], end_latlon: Tuple[float, float], 
-                     buffer_px: int = 25) -> Dict:
+                     buffer_px: Optional[int] = None) -> Dict:
         """
         Extracts a focused spatial sub-grid around start and end points to 
         optimize graph construction and memory footprint.
@@ -120,6 +115,10 @@ class DEMProcessor:
         r1, c1 = self.latlon_to_rowcol(*start_latlon)
         r2, c2 = self.latlon_to_rowcol(*end_latlon)
         
+        if buffer_px is None:
+            dist_px = math.sqrt((r1 - r2)**2 + (c1 - c2)**2)
+            buffer_px = max(25, int(dist_px * 0.35))
+
         min_r = max(0, min(r1, r2) - buffer_px)
         max_r = min(self.height, max(r1, r2) + buffer_px + 1)
         min_c = max(0, min(c1, c2) - buffer_px)
