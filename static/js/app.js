@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPresets();
     loadCachedRoutes();
     loadUserApiKey();
+    initThemePalette();
 
     // Initial mobile tab check
     if (window.innerWidth < 1024) {
@@ -105,7 +106,38 @@ function clearUserApiKey() {
     if (inputModal) inputModal.value = '';
     loadUserApiKey();
     closeModal('apiKeyModal');
-    showToast("Gemini API Key removed from browser storage.", "info", "API KEY CLEARED");
+}
+
+// Color Scheme Palette Switcher (Following Hostinger Web Design Best Practices: 60-30-10 Rule)
+let currentThemeColor = '#ff5a1f';
+
+function changeThemePalette(theme) {
+    localStorage.setItem('mars_color_theme', theme);
+    const sel = document.getElementById('themeSelector');
+    if (sel) sel.value = theme;
+
+    if (theme === 'cyan') {
+        currentThemeColor = '#00f0ff';
+        showToast("Switched to Orbital Cyan Color Scheme", "info", "THEME PALETTE UPDATED");
+    } else if (theme === 'emerald') {
+        currentThemeColor = '#22c55e';
+        showToast("Switched to Bio-Suit Emerald Color Scheme", "success", "THEME PALETTE UPDATED");
+    } else if (theme === 'mono') {
+        currentThemeColor = '#f8fafc';
+        showToast("Switched to Deep Space Monochromatic Color Scheme", "info", "THEME PALETTE UPDATED");
+    } else {
+        currentThemeColor = '#ff5a1f';
+        showToast("Switched to Mars Rust-Orange (60-30-10) Color Scheme", "info", "THEME PALETTE UPDATED");
+    }
+
+    if (routePolyline) {
+        routePolyline.setStyle({ color: currentThemeColor });
+    }
+}
+
+function initThemePalette() {
+    const savedTheme = localStorage.getItem('mars_color_theme') || 'mars';
+    changeThemePalette(savedTheme);
 }
 
 // Top Menu Navigation Tabs
