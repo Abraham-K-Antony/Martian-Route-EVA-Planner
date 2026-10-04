@@ -151,6 +151,45 @@ python -m pytest -v tests/
 
 ---
 
+## 🎨 Frontend Architecture & Build System
+
+The web frontend is a lightweight, mobile-first Single Page Application (SPA) built with semantic HTML5, Vanilla ES modules, Leaflet.js, and precompiled Tailwind CSS (v4).
+
+### File Structure
+```
+static/
+├── css/
+│   └── styles.css          # Precompiled minified production stylesheet (Tailwind v4 CLI, 34 KB)
+├── js/
+│   ├── app.js              # Application entry point & service bootstrap
+│   ├── router.js           # Client-side SPA routing (Home, Planner, How It Works, Mission Sites, etc.)
+│   ├── theme.js            # Light-first system & dark mode preference persistence
+│   ├── state.js            # Reactive application state & constraint persistence (localStorage)
+│   ├── api.js              # Fetch client with AbortController cancellation & error handling
+│   ├── sanitizer.js        # DOMPurify-based XSS protection for AI Markdown briefings
+│   ├── toast.js            # Mission alert toast notifications
+│   ├── map.js              # NASA Trek WMTS tiles, slope-banded polylines & walkback envelope
+│   ├── chart.js            # Chart.js dual Y-axis elevation & slope interactive profile
+│   ├── stepper.js          # 3-step workflow, multi-route switching, telemetry bento & exports
+│   └── pages/              # View-specific logic (Home, Mission Sites, Contact)
+├── src/
+│   └── input.css           # Tailwind v4 source tokens, custom properties & isolated hazard scale
+└── index.html              # Main responsive layout shell, navbar, unified mobile sheet & footer
+```
+
+### Building CSS with Tailwind CLI
+To modify styling tokens or classes and compile `styles.css`:
+```bash
+# Build minified production CSS (one-shot):
+npm run build:css
+
+# Or watch for changes during active development:
+npm run watch:css
+```
+*Note: The production Docker image and Render deployment remain 100% Python-based and do not require Node.js at runtime because `styles.css` is precompiled into the repository.*
+
+---
+
 ## 📜 License & Citation
 
 **Copyright © 2026 Abraham K Antony. All Rights Reserved.**  

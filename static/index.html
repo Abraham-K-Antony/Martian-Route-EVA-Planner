@@ -1,759 +1,1256 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Interplanetary Survival Guide: Mars EVA Planner</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Marked.js for rendering markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        mars: {
-                            dark: '#080c14',
-                            panel: '#0d1320',
-                            card: '#111927',
-                            border: '#202b3a',
-                            accent: '#ff5a1f',
-                            glow: '#ff773d',
-                            neon: '#22d3ee',
-                            safe: '#22c55e',
-                            warn: '#f5b82e',
-                            danger: '#ef4444'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: #080c14;
-            color: #e8edf5;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            touch-action: manipulation;
-        }
-        #map {
-            height: 320px;
-            width: 100%;
-            border-radius: 8px;
-            z-index: 1;
-            background: #080c14;
-        }
-        @media (min-width: 1024px) {
-            #map {
-                height: 380px;
-            }
-        }
-        #map .leaflet-tile-pane {
-            filter: brightness(0.65) sepia(1) hue-rotate(-35deg) saturate(3) contrast(1.2);
-        }
-        .glass-panel {
-            background: rgba(13, 19, 32, 0.9);
-            backdrop-filter: blur(12px);
-            border: 1px solid #202b3a;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #080c14;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #202b3a;
-            border-radius: 3px;
-        }
-        .nav-btn {
-            transition: all 0.2s ease;
-        }
-        @media print {
-            body { background: white !important; color: black !important; }
-            nav, aside#panelControls, #panelMap, .modal { display: none !important; }
-            #panelBriefing { width: 100% !important; display: block !important; }
-            #briefingContent { color: black !important; overflow: visible !important; }
-        }
-        .nav-btn:hover {
-            color: #22d3ee;
-            background: rgba(34, 211, 238, 0.1);
-        }
-        .nav-btn.active {
-            color: #ff5a1f;
-            border-bottom: 2px solid #ff5a1f;
-            background: rgba(255, 90, 31, 0.15);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Martian Route & EVA Planner — Jezero Crater Traversal Engine</title>
+  
+  <!-- SEO & Open Graph Meta Tags -->
+  <meta name="description" content="Plan safe, energy-efficient astronaut walking routes across Jezero Crater on Mars using physical Minetti metabolic models and NASA Mars DEM terrain data.">
+  <meta name="keywords" content="Mars, EVA, Jezero Crater, NASA Space Apps, Astronaut, Pathfinding, Minetti, Planetary Science, Perseverance">
+  <meta name="author" content="Abraham K Antony">
+  <meta property="og:title" content="Martian Route & EVA Planner">
+  <meta property="og:description" content="Plan the safest walk on Mars. Interactive EVA mission planning engine for Jezero Crater.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/favicon.ico">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Leaflet CSS & JS for map engine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Marked.js CDN for Markdown Briefings -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+
+  <!-- Precompiled Production Stylesheet (Tailwind v4) -->
+  <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="min-h-screen lg:h-screen flex flex-col overflow-x-hidden lg:overflow-hidden select-none">
+<body class="min-h-screen flex flex-col bg-[#FAFAFA] text-[#1F2937] dark:bg-[#0B0F17] dark:text-[#F9FAFB] transition-colors duration-200">
 
-    <!-- Toast Notification Overlay Container -->
-    <div id="toastContainer" class="fixed top-16 right-4 sm:right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-xs sm:max-w-sm"></div>
+  <!-- Toast Notification Overlay -->
+  <div id="toastContainer" class="fixed top-20 right-4 sm:right-6 z-50 flex flex-col gap-2.5 pointer-events-none max-w-sm w-full" aria-live="polite"></div>
 
-    <!-- Top Mission Control Header -->
-    <header class="bg-mars-panel border-b border-mars-border px-3 sm:px-6 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-lg">
-        <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full bg-mars-accent/20 flex items-center justify-center border border-mars-accent shrink-0">
-                <i class="fa-solid fa-planet-ringed text-mars-accent text-base"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-xs sm:text-sm text-white tracking-wider flex items-center gap-1.5 flex-wrap">
-                    INTERPLANETARY SURVIVAL GUIDE <span class="text-[9px] sm:text-[10px] bg-mars-accent text-white px-1.5 py-0.5 rounded font-mono">JEZERO-EVA-2.0</span>
-                </h1>
-                <p class="text-[10px] sm:text-[11px] text-gray-400">Mars Surface Operations • Autonomous A* Pathfinding & AI Briefing Engine</p>
-            </div>
+  <!-- Sticky Blurred Translucent Top Navbar -->
+  <header class="sticky top-0 z-40 w-full glass-nav backdrop-blur-xl border-b border-gray-200/80 dark:border-gray-800/80 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo & Identity -->
+      <a href="/" data-nav class="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
+          <i class="fa-solid fa-planet-ringed text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">Martian Route</span>
+            <span class="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-mono">EVA 2.0</span>
+          </div>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400 font-medium hidden sm:block">Jezero Crater Planetary Traversal Engine</p>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="hidden md:flex items-center gap-1 bg-gray-100/70 dark:bg-gray-800/50 p-1 rounded-full border border-gray-200/60 dark:border-gray-700/60 backdrop-blur-sm" aria-label="Main Navigation">
+        <a href="/" data-nav class="nav-desktop-link text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 transition-colors">Home</a>
+        <a href="/planner" data-nav class="nav-desktop-link text-xs font-medium px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/60 transition-colors">Planner</a>
+        <a href="/how-it-works" data-nav class="nav-desktop-link text-xs font-medium px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/60 transition-colors">How It Works</a>
+        <a href="/mission-sites" data-nav class="nav-desktop-link text-xs font-medium px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/60 transition-colors">Mission Sites</a>
+        <a href="/about" data-nav class="nav-desktop-link text-xs font-medium px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/60 transition-colors">About</a>
+        <a href="/contact" data-nav class="nav-desktop-link text-xs font-medium px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/60 transition-colors">Contact</a>
+      </nav>
+
+      <!-- Right Header Actions (Theme Toggle & CTA) -->
+      <div class="flex items-center gap-2.5">
+        
+        <!-- Server Cold-Start Health Indicator -->
+        <div id="serverStatusBadge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50" title="Mission Server Online">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>ONLINE</span>
         </div>
 
-        <div class="flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs font-mono w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-mars-border/50 pt-1 sm:pt-0">
-            <!-- Mission State Indicator -->
-            <div class="flex items-center gap-1.5 bg-mars-card px-2.5 py-1 rounded border border-mars-border">
-                <span class="text-gray-400 hidden xs:inline">STATE:</span>
-                <span id="missionStateBadge" class="text-green-400 font-bold flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> ● ROUTE READY
-                </span>
-            </div>
-
-            <div class="flex items-center gap-1.5 text-mars-neon bg-mars-neon/10 px-2 py-1 rounded border border-mars-neon/30">
-                <i class="fa-solid fa-code"></i> <a href="https://github.com/Abraham-K-Antony" target="_blank" class="font-bold hover:underline">ABRAHAM K ANTONY</a>
-            </div>
-        </div>
-    </header>
-
-    <!-- Navigation Menu Bar -->
-    <nav class="bg-mars-dark border-b border-mars-border px-3 sm:px-6 py-1.5 flex items-center justify-between overflow-x-auto custom-scrollbar font-mono text-xs">
-        <div class="flex items-center gap-1 sm:gap-2">
-            <button onclick="switchViewTab('map')" id="navMapBtn" class="nav-btn active px-3 py-1.5 rounded flex items-center gap-1.5 font-bold">
-                <i class="fa-solid fa-map-location-dot"></i> <span>TACTICAL MAP & HUD</span>
-            </button>
-            <button onclick="openModal('tutorialModal')" id="navTutorialBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
-                <i class="fa-solid fa-graduation-cap text-yellow-400"></i> <span>TUTORIAL & GUIDE</span>
-            </button>
-            <button onclick="openModal('projectFilesModal')" id="navFilesBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
-                <i class="fa-solid fa-folder-tree text-mars-neon"></i> <span>PROJECT FILES</span>
-            </button>
-            <button onclick="openModal('apiKeyModal')" id="navApiKeyBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
-                <i class="fa-solid fa-key text-green-400"></i> <span>SECURE API KEY</span>
-            </button>
-            <button onclick="openModal('contactModal')" id="navContactBtn" class="nav-btn px-3 py-1.5 rounded flex items-center gap-1.5 font-semibold text-gray-300">
-                <i class="fa-solid fa-address-card text-mars-glow"></i> <span>CONTACT & AUTHOR</span>
-            </button>
-        </div>
-
-        <div class="hidden md:flex items-center gap-4 text-[11px] text-gray-400">
-            <div class="flex items-center gap-1.5 font-mono">
-                <span class="text-gray-400 font-bold"><i class="fa-solid fa-palette text-mars-accent"></i> Palette:</span>
-                <select id="themeSelector" onchange="changeThemePalette(this.value)" class="bg-mars-dark border border-mars-border text-xs rounded px-2 py-1 text-gray-200 focus:outline-none font-bold">
-                    <option value="mars">🔴 Mars Rust-Orange (60-30-10)</option>
-                    <option value="cyan">🔵 Orbital Cyan (High-Tech)</option>
-                    <option value="emerald">🟢 Bio-Suit Emerald (LSS)</option>
-                    <option value="mono">⚪ Deep Space Monochromatic</option>
-                </select>
-            </div>
-            <span id="apiKeyStatusBadge" class="text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/30 flex items-center gap-1 font-mono">
-                <i class="fa-solid fa-lock"></i> Client API Key Isolated
-            </span>
-        </div>
-    </nav>
-
-    <!-- Mobile Navigation Tab Bar -->
-    <div class="lg:hidden flex bg-mars-panel border-b border-mars-border text-xs font-mono sticky top-0 z-40">
-        <button id="mobileTabControls" onclick="switchMobileTab('controls')" class="flex-1 py-2.5 text-center font-bold text-gray-400 border-b-2 border-transparent flex items-center justify-center gap-1">
-            <i class="fa-solid fa-sliders"></i> CONTROLS
+        <!-- Dark/Light Theme Toggle -->
+        <button id="themeToggleBtn" type="button" class="w-9 h-9 rounded-xl flex items-center justify-center text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-white border border-gray-200 dark:border-gray-700 shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="Toggle dark/light theme">
+          <i class="fa-solid fa-sun theme-icon-sun text-amber-500 hidden"></i>
+          <i class="fa-solid fa-moon theme-icon-moon text-blue-400"></i>
         </button>
-        <button id="mobileTabMap" onclick="switchMobileTab('map')" class="flex-1 py-2.5 text-center font-bold text-mars-accent border-b-2 border-mars-accent flex items-center justify-center gap-1">
-            <i class="fa-solid fa-map"></i> MAP & HUD
+
+        <!-- Primary CTA to Planner -->
+        <a href="/planner" data-nav class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+          <i class="fa-solid fa-compass"></i>
+          <span>Plan an EVA</span>
+        </a>
+
+        <!-- Mobile Hamburger Button -->
+        <button id="mobileMenuBtn" type="button" class="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-gray-600 hover:text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="Open Navigation Menu">
+          <i class="fa-solid fa-bars text-base"></i>
         </button>
-        <button id="mobileTabBriefing" onclick="switchMobileTab('briefing')" class="flex-1 py-2.5 text-center font-bold text-gray-400 border-b-2 border-transparent flex items-center justify-center gap-1">
-            <i class="fa-solid fa-user-astronaut"></i> BRIEFING
-        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Backdrop -->
+  <div id="mobileBackdrop" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden transition-opacity duration-300"></div>
+
+  <!-- Mobile Side Drawer -->
+  <aside id="mobileDrawer" class="fixed top-0 right-0 z-50 h-full w-72 max-w-[85vw] bg-white dark:bg-[#131B2E] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-gray-200 dark:border-gray-800" aria-label="Mobile Navigation">
+    <div class="p-5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-sm">
+          <i class="fa-solid fa-planet-ringed"></i>
+        </div>
+        <span class="font-bold text-sm text-gray-900 dark:text-white">Martian Route</span>
+      </div>
+      <button id="mobileMenuCloseBtn" type="button" aria-label="Close Navigation Menu" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-white focus:outline-none">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
     </div>
 
-    <!-- Main Workspace Layout -->
-    <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
-        
-        <!-- Left Panel: Guided Workflow -->
-        <aside id="panelControls" class="w-full lg:w-80 bg-mars-panel border-b lg:border-b-0 lg:border-r border-mars-border p-3.5 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
+    <!-- Mobile Nav Links -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-1">
+      <a href="/" data-nav class="nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 font-semibold text-sm transition-colors">
+        <i class="fa-solid fa-house w-5 text-center"></i> Home
+      </a>
+      <a href="/planner" data-nav class="nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 font-medium text-sm transition-colors">
+        <i class="fa-solid fa-compass w-5 text-center"></i> Plan an EVA
+      </a>
+      <a href="/how-it-works" data-nav class="nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 font-medium text-sm transition-colors">
+        <i class="fa-solid fa-atom w-5 text-center"></i> How It Works
+      </a>
+      <a href="/mission-sites" data-nav class="nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 font-medium text-sm transition-colors">
+        <i class="fa-solid fa-location-dot w-5 text-center"></i> Mission Sites
+      </a>
+      <a href="/about" data-nav class="nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 font-medium text-sm transition-colors">
+        <i class="fa-solid fa-users w-5 text-center"></i> About Team
+      </a>
+      <a href="/contact" data-nav class="nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 font-medium text-sm transition-colors">
+        <i class="fa-solid fa-envelope w-5 text-center"></i> Contact & Feedback
+      </a>
+    </div>
+
+    <!-- Mobile Drawer Footer Actions -->
+    <div class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+      <button id="mobileThemeToggleBtn" type="button" aria-label="Toggle dark or light theme" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-moon theme-icon-moon text-blue-400"></i>
+          <i class="fa-solid fa-sun theme-icon-sun text-amber-500 hidden"></i>
+          <span class="theme-label-text">Dark Mode</span>
+        </span>
+        <span class="text-[10px] text-gray-400 font-mono">TOGGLE</span>
+      </button>
+
+      <a href="/planner" data-nav class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+        <i class="fa-solid fa-rocket"></i> Launch Mission Planner
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Multi-View SPA Container -->
+  <main id="app-root" class="flex-1 flex flex-col relative w-full">
+
+    <!-- ================================================================= -->
+    <!-- VIEW 1: HOME (Landing Page)                                       -->
+    <!-- ================================================================= -->
+    <section id="view-home" class="page-view flex-1 flex flex-col w-full">
+      
+      <!-- Hero Section -->
+      <div class="relative overflow-hidden pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-gray-200/60 dark:border-gray-800/60 bg-gradient-to-b from-blue-50/30 via-transparent to-transparent dark:from-blue-950/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center max-w-3xl mx-auto space-y-6">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200/80 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800/60 shadow-sm">
+              <span class="flex h-2 w-2 rounded-full bg-blue-600 animate-ping"></span>
+              <span>Autonomous Planetary EVA Engine • NASA Space Apps</span>
+            </div>
             
-            <!-- 01 MISSION ROUTE PRESETS -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border">
-                <label class="block text-xs font-bold text-mars-neon uppercase tracking-wider mb-2 flex items-center gap-1.5 font-mono">
-                    <span class="text-green-400">✓</span> 01 MISSION ROUTE
-                </label>
-                <div class="space-y-2 text-xs">
-                    <div>
-                        <span class="text-gray-400 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span> START LOCATION:
-                        </span>
-                        <select id="startPreset" class="w-full mt-1 bg-mars-dark border border-mars-border text-xs rounded p-2 text-gray-200 focus:outline-none focus:border-mars-accent font-medium">
-                            <!-- Populated via JS -->
-                        </select>
-                    </div>
-                    <div>
-                        <span class="text-gray-400 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> DESTINATION:
-                        </span>
-                        <select id="endPreset" class="w-full mt-1 bg-mars-dark border border-mars-border text-xs rounded p-2 text-gray-200 focus:outline-none focus:border-mars-accent font-medium">
-                            <!-- Populated via JS -->
-                        </select>
-                    </div>
-                </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-[1.12]">
+              Plan the safest walk <br class="hidden sm:inline">
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-violet-600 to-indigo-600 dark:from-blue-400 dark:via-violet-400 dark:to-indigo-400">on Mars.</span>
+            </h1>
+
+            <p class="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Navigate extravehicular missions across Jezero Crater with physical Minetti metabolic energy models, 38.4m NASA Mars DEM elevation grids, solar glare hazard tracking, and suit life-support telemetry.
+            </p>
+
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+              <a href="/planner" data-nav class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 active:scale-95 transition-all">
+                <i class="fa-solid fa-compass"></i>
+                <span>Plan an EVA</span>
+              </a>
+              <a href="/how-it-works" data-nav class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/80 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 shadow-sm active:scale-95 transition-all">
+                <i class="fa-solid fa-book-open text-gray-400"></i>
+                <span>See how it works</span>
+              </a>
             </div>
 
-            <!-- 02 ROUTE STRATEGY -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border">
-                <label class="block text-xs font-bold text-mars-neon uppercase tracking-wider mb-2 flex items-center justify-between font-mono">
-                    <span><span class="text-green-400">✓</span> 02 ROUTE STRATEGY</span>
-                    <label class="flex items-center gap-1 cursor-pointer text-[10px] text-mars-accent lowercase font-normal">
-                        <input type="checkbox" id="isRoundTrip" onchange="onConstraintChange()" class="accent-mars-accent">
-                        <span class="font-bold font-mono uppercase text-white">🔄 Round Trip</span>
-                    </label>
-                </label>
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-1 text-center font-mono">
-                    <button id="modeEnergy" onclick="setRouteMode('lowest_energy')" class="p-1.5 rounded border border-mars-accent bg-mars-accent/20 text-white font-bold transition text-[10px]">
-                        <div>⚡ ENERGY</div>
-                        <div class="text-[8px] text-gray-300">Minetti Model</div>
-                    </button>
-                    <button id="modeFastest" onclick="setRouteMode('fastest')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
-                        <div>⏱️ FASTEST</div>
-                        <div class="text-[8px] text-gray-500">Min Time</div>
-                    </button>
-                    <button id="modeSafest" onclick="setRouteMode('safest')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
-                        <div>🛡️ SAFEST</div>
-                        <div class="text-[8px] text-gray-500">Low Slope</div>
-                    </button>
-                    <button id="modeComms" onclick="setRouteMode('comms_safe')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
-                        <div>📡 COMMS</div>
-                        <div class="text-[8px] text-gray-500">RF LoS Mesh</div>
-                    </button>
-                    <button id="modeLegacy" onclick="setRouteMode('legacy')" class="p-1.5 rounded border border-mars-border bg-mars-dark hover:bg-mars-border text-gray-300 transition text-[10px]">
-                        <div>📜 LEGACY</div>
-                        <div class="text-[8px] text-gray-500">Old Formula</div>
-                    </button>
-                </div>
+            <!-- Telemetry Metrics Bar (Count-up Animation) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 pt-10 max-w-3xl mx-auto">
+              <div class="bg-white dark:bg-[#131B2E] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-sm">
+                <div class="text-2xl sm:text-3xl font-extrabold font-mono text-blue-600 dark:text-blue-400" data-counter-target="38.4" data-counter-decimals="1" data-counter-suffix=" m">38.4 m</div>
+                <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-1 uppercase font-semibold tracking-wider font-mono">DEM Resolution</div>
+              </div>
+              <div class="bg-white dark:bg-[#131B2E] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-sm">
+                <div class="text-2xl sm:text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400" data-counter-target="5" data-counter-decimals="0" data-counter-suffix=" Models">5 Models</div>
+                <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-1 uppercase font-semibold tracking-wider font-mono">Path Engines</div>
+              </div>
+              <div class="bg-white dark:bg-[#131B2E] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-sm">
+                <div class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400" data-counter-target="840" data-counter-decimals="0" data-counter-suffix=" L">840 L</div>
+                <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-1 uppercase font-semibold tracking-wider font-mono">xEMU O₂ Tank</div>
+              </div>
+              <div class="bg-white dark:bg-[#131B2E] p-4 rounded-2xl border border-gray-200/80 dark:border-gray-800 shadow-sm">
+                <div class="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400" data-counter-target="100" data-counter-decimals="0" data-counter-suffix="%">100%</div>
+                <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-1 uppercase font-semibold tracking-wider font-mono">LoS RF Coverage</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animated Traversal Route Preview -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-gray-100 dark:border-gray-800">
+            <div>
+              <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 font-mono uppercase tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Mission Simulation Preview
+              </span>
+              <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mt-1">Perseverance Touchdown ➔ Neretva Delta Traversal</h2>
+            </div>
+            
+            <!-- Hazard Scale Legend (Strictly for safety/slope) -->
+            <div class="flex items-center gap-3 text-xs font-mono">
+              <span class="text-gray-400 text-[11px]">SLOPE SCALE:</span>
+              <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> &lt;8° Safe</span>
+              <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 8–15° Caution</span>
+              <span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> &gt;15° Danger</span>
+            </div>
+          </div>
+
+          <!-- Synthetic Elevation Profile Graphic with Animated Traverse -->
+          <div class="py-6">
+            <div class="relative w-full h-44 sm:h-52 bg-gray-50 dark:bg-[#0B0F17] rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 flex items-end px-4 pt-4">
+              <!-- SVG Elevation Wave -->
+              <svg class="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="marsElevationGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.02"/>
+                  </linearGradient>
+                </defs>
+                <path d="M 0 160 Q 150 140, 250 110 T 500 80 T 700 130 L 800 120 L 800 200 L 0 200 Z" fill="url(#marsElevationGrad)" />
+                <path d="M 0 160 Q 150 140, 250 110 T 500 80 T 700 130 L 800 120" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" />
+                <!-- Waypoint Circles -->
+                <circle cx="50" cy="155" r="6" fill="#16A34A" stroke="#FFFFFF" stroke-width="2"/>
+                <circle cx="250" cy="110" r="5" fill="#2563EB" stroke="#FFFFFF" stroke-width="2"/>
+                <circle cx="500" cy="80" r="5" fill="#F59E0B" stroke="#FFFFFF" stroke-width="2"/>
+                <circle cx="750" cy="125" r="6" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+              </svg>
+
+              <!-- Telemetry Overlay Badges -->
+              <div class="absolute top-4 left-4 flex flex-wrap gap-2 text-[11px] font-mono">
+                <span class="px-2.5 py-1 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-sm border border-gray-200/60 dark:border-gray-700 font-bold">
+                  🟢 S: Octavia E. Butler (-2,570 m)
+                </span>
+                <span class="px-2.5 py-1 rounded-lg bg-white/90 dark:bg-gray-800/90 shadow-sm border border-gray-200/60 dark:border-gray-700 font-bold">
+                  🔴 D: Neretva Delta (-2,520 m)
+                </span>
+              </div>
+
+              <div class="absolute bottom-3 right-4 text-[11px] font-mono text-gray-500 dark:text-gray-400">
+                <span>Elevation Gradient Profile: +50 m Net Delta Rise</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+              Minetti optimal energy cost: <span class="font-bold text-gray-900 dark:text-white font-mono">142 kcal</span> • Est. Duration: <span class="font-bold text-gray-900 dark:text-white font-mono">18 min</span> • Maximum Slope: <span class="font-bold text-amber-600 dark:text-amber-400 font-mono">9.2°</span>
+            </div>
+            <a href="/planner" data-nav class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+              <span>Open in Mission Planner</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bento Grid: Key Mission Capabilities -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div class="text-center max-w-2xl mx-auto mb-12 space-y-2">
+          <h2 class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-widest font-mono">Engineering Core</h2>
+          <p class="text-3xl font-extrabold text-gray-900 dark:text-white">Built for Planetary Exploration</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Every calculation is derived from peer-reviewed biomechanical literature and validated against Mars orbital telemetry.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Bento 1: Minetti Metabolic Model -->
+          <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-7 shadow-sm card-hover flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-bolt"></i>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white">Minetti Metabolic Energy ($J/\text{m}$)</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                Computes energy cost using the 5th-order Minetti polynomial adapted for 0.378g Mars gravity and a $1.35\times$ metabolic multiplier for rigid xEMU pressure suit movement.
+              </p>
+              <div class="p-3 rounded-xl bg-gray-50 dark:bg-[#0B0F17] font-mono text-[11px] text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-gray-800">
+                C(i) = M_total · (280.5i⁵ - 58.7i⁴...)
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 text-[11px] text-gray-500 font-mono">
+              Floor Cost: 150 J/m minimum
+            </div>
+          </div>
+
+          <!-- Bento 2: 3D Comms LoS Mesh -->
+          <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-7 shadow-sm card-hover flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-tower-broadcast"></i>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white">3D Line-of-Sight Comms Mesh</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                Calculates direct RF connectivity between astronauts and surface relays (Perseverance Rover, Ingenuity Airfield, Crater Rim Tower) via terrain ray-casting to avoid radio shadows.
+              </p>
+              <div class="p-3 rounded-xl bg-gray-50 dark:bg-[#0B0F17] font-mono text-[11px] text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-gray-800">
+                Relays: Rover (6km) • Rim (18km)
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 text-[11px] text-gray-500 font-mono">
+              Live dead-zone warnings
+            </div>
+          </div>
+
+          <!-- Bento 3: Solar Glare & Thermal Aspect -->
+          <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-7 shadow-sm card-hover flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-sun"></i>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white">Solar Glare & Shadow Hazards</h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                Derives 2D terrain aspect direction ($\phi_{aspect} \in [0^\circ, 360^\circ]$) and correlates with Mars Sun position (2:00 PM local solar time) to flag blinding glare and freezing shadows.
+              </p>
+              <div class="p-3 rounded-xl bg-gray-50 dark:bg-[#0B0F17] font-mono text-[11px] text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-gray-800">
+                Aspect: arctan2(-dz/dx, -dz/dy)
+              </div>
+            </div>
+            <div class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800 text-[11px] text-gray-500 font-mono">
+              Sun Azimuth 225° • Elevation 45°
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Quick Preset Routes Bar -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div class="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl text-white p-8 sm:p-10 shadow-xl relative overflow-hidden">
+          <div class="relative z-10 max-w-2xl space-y-4">
+            <span class="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-blue-200 font-semibold">
+              <i class="fa-solid fa-route"></i> Curated Mission Presets
+            </span>
+            <h3 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Ready to walk Jezero Crater?</h3>
+            <p class="text-sm text-blue-100 leading-relaxed">
+              Launch directly into the planner with verified landmarks from Mars 2020 Perseverance science campaigns.
+            </p>
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button type="button" data-quick-preset data-preset-name="Perseverance Landing Site (Octavia E. Butler)" data-preset-lat="18.4447" data-preset-lon="77.4508" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-xs font-semibold border border-white/20 active:scale-95 transition-all">
+                <i class="fa-solid fa-flag text-emerald-400"></i> Octavia E. Butler Landing Site
+              </button>
+              <button type="button" data-quick-preset data-preset-name="Neretva Vallis Delta Edge" data-preset-lat="18.4550" data-preset-lon="77.4180" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-xs font-semibold border border-white/20 active:scale-95 transition-all">
+                <i class="fa-solid fa-mountain text-blue-300"></i> Neretva Delta Outcrop
+              </button>
+              <button type="button" data-quick-preset data-preset-name="Bright Angel (Cheyava Falls Specimen)" data-preset-lat="18.4710" data-preset-lon="77.4120" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-xs font-semibold border border-white/20 active:scale-95 transition-all">
+                <i class="fa-solid fa-gem text-purple-300"></i> Cheyava Falls Specimen
+              </button>
+            </div>
+          </div>
+          <!-- Decorative Background Glow -->
+          <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-blue-500/20 blur-3xl pointer-events-none"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 2: PLANNER (Interactive Product Core)                         -->
+    <!-- ================================================================= -->
+    <section id="view-planner" class="page-view flex-1 flex flex-col hidden w-full relative">
+      
+      <!-- Planner Stepper Header Toolbar -->
+      <div class="w-full bg-white dark:bg-[#131B2E] border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs">
+        
+        <!-- 3-Step Navigation Pills -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- Step 1 Pill -->
+          <button type="button" data-step-btn="1" aria-label="Step 1: Choose Points" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition-all">
+            <span class="step-circle w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">1</span>
+            <span class="step-label font-bold">Points</span>
+          </button>
+          
+          <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 dark:text-gray-700"></i>
+
+          <!-- Step 2 Pill -->
+          <button type="button" data-step-btn="2" aria-label="Step 2: Mission Constraints" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+            <span class="step-circle w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center justify-center text-[10px]">2</span>
+            <span class="step-label hidden sm:inline text-gray-400">Constraints</span>
+          </button>
+
+          <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 dark:text-gray-700"></i>
+
+          <!-- Step 3 Pill -->
+          <button type="button" data-step-btn="3" aria-label="Step 3: Traversal Results" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+            <span class="step-circle w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center justify-center text-[10px]">3</span>
+            <span class="step-label hidden sm:inline text-gray-400">Results</span>
+          </button>
+        </div>
+
+        <!-- Toolbar Right Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Active Pick Status Badge -->
+          <div id="mapPickStatusBadge" class="hidden text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 animate-pulse">
+            Click on map to place pin
+          </div>
+
+          <!-- Click Map Pins Button -->
+          <button id="mapPickModeBtn" type="button" aria-label="Toggle map pin clicking mode" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 shadow-xs active:scale-95 transition-all">
+            <i class="fa-solid fa-crosshairs text-blue-600 dark:text-blue-400"></i>
+            <span class="hidden sm:inline">Click Map Pins</span>
+          </button>
+
+          <!-- Client-Side Secure API Key Modal Button -->
+          <button id="openApiKeyModalBtn" type="button" aria-label="Configure private Gemini API key" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 shadow-xs active:scale-95 transition-all" title="Configure private Gemini API key">
+            <i class="fa-solid fa-key text-emerald-500"></i>
+            <span class="hidden md:inline font-mono">API Key</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Planner Flex Viewport Container -->
+      <div class="flex-1 flex flex-col lg:flex-row relative overflow-hidden h-[calc(100vh-6.5rem)]">
+        
+        <!-- Left Column: Step Configuration Panels (Unified Desktop Sidebar & Mobile Bottom Sheet) -->
+        <aside id="plannerSidebar" class="fixed bottom-0 left-0 right-0 z-30 max-h-[82vh] lg:static lg:max-h-full lg:translate-y-0 lg:w-[440px] xl:w-[480px] bg-white dark:bg-[#131B2E] border-t lg:border-t-0 lg:border-r border-gray-200 dark:border-gray-800 flex flex-col overflow-y-auto custom-scrollbar p-5 space-y-5 shrink-0 rounded-t-3xl lg:rounded-none shadow-2xl lg:shadow-none transition-transform duration-300">
+          
+          <!-- Mobile Drag & Toggle Handle Bar (Visible on screens < lg) -->
+          <div id="mobileSheetHandle" class="lg:hidden -mt-2 pb-2 flex flex-col items-center justify-center cursor-pointer select-none" aria-label="Toggle Mission Planner Controls">
+            <div class="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+            <span class="text-[10px] font-mono font-semibold text-gray-500 dark:text-gray-400 mt-1">▲ TAP / DRAG CONTROLS</span>
+          </div>
+
+          <!-- STEP 1 PANEL: CHOOSE POINTS -->
+          <div class="planner-step-panel space-y-5" data-step-panel="1">
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold block">Step 01 / 03</span>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Choose Mission Waypoints</h2>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Select landmark presets or drag markers anywhere on the satellite map of Jezero Crater.
+              </p>
             </div>
 
-            <!-- 03 TERRAIN CONSTRAINTS -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border space-y-2 text-xs">
-                <label class="block font-bold text-mars-neon uppercase tracking-wider flex items-center justify-between font-mono">
-                    <span><span class="text-green-400">✓</span> 03 TERRAIN CONSTRAINTS</span>
-                    <span id="resBadge" class="text-[9px] text-mars-neon font-mono font-normal">38.4m/px</span>
-                </label>
-                <div>
-                    <div class="flex justify-between text-gray-300 mb-1">
-                        <span>Max Slope Barrier (Hard):</span>
-                        <span id="slopeVal" class="font-mono text-yellow-400 font-bold">15.0°</span>
-                    </div>
-                    <input type="range" id="maxSlope" min="5" max="25" value="15" step="1" class="w-full accent-yellow-400 h-1.5">
-                </div>
-                <div>
-                    <div class="flex justify-between text-gray-300 mb-1">
-                        <span>Preferred Slope Band (Soft):</span>
-                        <span id="prefSlopeVal" class="font-mono text-green-400 font-bold">8.0°</span>
-                    </div>
-                    <input type="range" id="prefSlope" min="3" max="14" value="8" step="1" class="w-full accent-green-400 h-1.5">
-                </div>
-                <div id="kPenaltyContainer">
-                    <div class="flex justify-between text-gray-300 mb-1">
-                        <span>Legacy Penalty (k):</span>
-                        <span id="kVal" class="font-mono text-mars-accent font-bold">10.0</span>
-                    </div>
-                    <input type="range" id="penaltyK" min="1" max="30" value="10" step="1" class="w-full accent-mars-accent h-1.5">
-                </div>
-                <div>
-                    <span class="text-gray-400">Astronaut Walking Speed (km/h):</span>
-                    <input type="number" id="walkingSpeed" value="3.5" step="0.5" min="1" max="10" class="w-full bg-mars-dark border border-mars-border rounded p-1.5 text-xs text-white mt-0.5">
-                </div>
+            <!-- Start Location Selector -->
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-2">
+              <label for="startPresetSelect" class="block text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                  <span>START LOCATION (BASE)</span>
+                </span>
+                <span class="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">GREEN S PIN</span>
+              </label>
+              <select id="startPresetSelect" aria-label="Start Location Base Preset" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131B2E] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <!-- Populated via api.js -->
+              </select>
+              <div class="grid grid-cols-2 gap-2 pt-1 text-[11px] font-mono text-gray-500">
+                <div>Lat: <input type="number" id="coordStartLat" step="0.0001" aria-label="Start Latitude in degrees" class="w-full mt-0.5 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131B2E] text-gray-900 dark:text-white text-[11px]" readonly></div>
+                <div>Lon: <input type="number" id="coordStartLon" step="0.0001" aria-label="Start Longitude in degrees" class="w-full mt-0.5 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131B2E] text-gray-900 dark:text-white text-[11px]" readonly></div>
+              </div>
             </div>
 
-            <!-- ADVANCED COORDINATES -->
-            <details class="glass-panel rounded-lg border border-mars-border text-xs group">
-                <summary class="p-2.5 font-semibold text-gray-300 cursor-pointer flex justify-between items-center select-none">
-                    <span><i class="fa-solid fa-map-pin text-mars-neon mr-1"></i> Advanced Coordinates</span>
-                    <i class="fa-solid fa-chevron-down text-gray-500 group-open:rotate-180 transition-transform"></i>
-                </summary>
-                <div class="p-3 pt-0 space-y-2 border-t border-mars-border/50">
-                    <div class="flex justify-between items-center mt-2">
-                        <span class="text-gray-400 text-[11px]">Pin Selection:</span>
-                        <button id="mapPickBtn" class="text-mars-neon hover:underline font-bold flex items-center gap-1 text-[11px]">
-                            <i class="fa-solid fa-hand-pointer"></i> Click Map Pins
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <span class="text-gray-400">Start Lat:</span>
-                            <input type="number" id="startLat" step="0.0001" value="18.4447" class="w-full bg-mars-dark border border-mars-border rounded p-1.5 text-white mt-0.5">
-                        </div>
-                        <div>
-                            <span class="text-gray-400">Start Lon:</span>
-                            <input type="number" id="startLon" step="0.0001" value="77.4508" class="w-full bg-mars-dark border border-mars-border rounded p-1.5 text-white mt-0.5">
-                        </div>
-                        <div>
-                            <span class="text-gray-400">End Lat:</span>
-                            <input type="number" id="endLat" step="0.0001" value="18.4550" class="w-full bg-mars-dark border border-mars-border rounded p-1.5 text-white mt-0.5">
-                        </div>
-                        <div>
-                            <span class="text-gray-400">End Lon:</span>
-                            <input type="number" id="endLon" step="0.0001" value="77.4180" class="w-full bg-mars-dark border border-mars-border rounded p-1.5 text-white mt-0.5">
-                        </div>
-                    </div>
+            <!-- Destination Selector -->
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-2">
+              <label for="endPresetSelect" class="block text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span>
+                  <span>DESTINATION WAYPOINT</span>
+                </span>
+                <span class="text-[10px] font-mono text-red-600 dark:text-red-400 font-semibold">RED D PIN</span>
+              </label>
+              <select id="endPresetSelect" aria-label="Destination Waypoint Preset" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131B2E] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <!-- Populated via api.js -->
+              </select>
+              <div class="grid grid-cols-2 gap-2 pt-1 text-[11px] font-mono text-gray-500">
+                <div>Lat: <input type="number" id="coordEndLat" step="0.0001" aria-label="Destination Latitude in degrees" class="w-full mt-0.5 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131B2E] text-gray-900 dark:text-white text-[11px]" readonly></div>
+                <div>Lon: <input type="number" id="coordEndLon" step="0.0001" aria-label="Destination Longitude in degrees" class="w-full mt-0.5 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131B2E] text-gray-900 dark:text-white text-[11px]" readonly></div>
+              </div>
+            </div>
+
+            <!-- Layer Visibility Controls -->
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-3">
+              <span class="text-[10px] font-mono uppercase tracking-wider text-gray-400 font-bold block">TACTICAL MAP LAYERS</span>
+              <div class="space-y-2 text-xs">
+                <label class="flex items-center justify-between cursor-pointer">
+                  <span class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Route Polyline & Segments
+                  </span>
+                  <input type="checkbox" id="toggleLayerRoute" checked aria-label="Toggle Route Polyline and Segments Layer" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                  <span class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span> High Slope Hazards (&gt;12°)
+                  </span>
+                  <input type="checkbox" id="toggleLayerHazards" checked aria-label="Toggle High Slope Hazards Layer" class="w-4 h-4 rounded text-red-600 focus:ring-red-500">
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                  <span class="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Walkback Safety Envelope
+                  </span>
+                  <input type="checkbox" id="toggleLayerWalkback" checked aria-label="Toggle Walkback Safety Envelope Layer" class="w-4 h-4 rounded text-cyan-500 focus:ring-cyan-500">
+                </label>
+              </div>
+            </div>
+
+            <button type="button" id="nextToStep2Btn" aria-label="Configure mission constraints and proceed to Step 2" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+              <span>Configure Constraints</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- STEP 2 PANEL: SET CONSTRAINTS -->
+          <div class="planner-step-panel space-y-5 hidden" data-step-panel="2">
+            <div>
+              <span class="text-[10px] font-mono uppercase tracking-wider text-purple-600 dark:text-purple-400 font-semibold block">Step 02 / 03</span>
+              <h2 class="text-xl font-bold text-gray-900 dark:text-white">Mission Constraints</h2>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Configure astronaut pace, slope ceilings, and pathfinding model penalties.
+              </p>
+            </div>
+
+            <!-- Route Strategy Engine Buttons -->
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase font-mono text-[10px] tracking-wider">
+                ROUTING STRATEGY ENGINE
+              </label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <button type="button" data-strategy-mode="lowest_energy" class="p-2.5 rounded-xl border border-blue-500 bg-blue-50/80 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-bold text-center text-xs transition-all">
+                  <div class="flex items-center justify-center gap-1"><i class="fa-solid fa-bolt"></i> ENERGY</div>
+                  <div class="text-[9px] opacity-75 font-mono mt-0.5">Minetti Bioenergetics</div>
+                </button>
+                <button type="button" data-strategy-mode="fastest" class="p-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="flex items-center justify-center gap-1"><i class="fa-solid fa-stopwatch"></i> FASTEST</div>
+                  <div class="text-[9px] opacity-75 font-mono mt-0.5">Min Traversal Time</div>
+                </button>
+                <button type="button" data-strategy-mode="safest" class="p-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="flex items-center justify-center gap-1"><i class="fa-solid fa-shield"></i> SAFEST</div>
+                  <div class="text-[9px] opacity-75 font-mono mt-0.5">Slope Barrier Avoidance</div>
+                </button>
+                <button type="button" data-strategy-mode="comms_safe" class="p-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="flex items-center justify-center gap-1"><i class="fa-solid fa-tower-broadcast"></i> COMMS</div>
+                  <div class="text-[9px] opacity-75 font-mono mt-0.5">3D LoS RF Mesh</div>
+                </button>
+                <button type="button" data-strategy-mode="legacy" class="p-2.5 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="flex items-center justify-center gap-1"><i class="fa-solid fa-scroll"></i> LEGACY</div>
+                  <div class="text-[9px] opacity-75 font-mono mt-0.5">Exponential Penalty</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Max Slope Barrier Slider -->
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-gray-700 dark:text-gray-300">Max Slope Barrier (Hard Ceiling):</span>
+                <span id="maxSlopeValueDisplay" class="font-mono font-bold text-amber-600 dark:text-amber-400">15.0°</span>
+              </div>
+              <input type="range" id="maxSlopeSlider" min="5" max="25" step="1" value="15" aria-label="Max Slope Barrier in degrees" class="w-full accent-amber-500 h-1.5 cursor-pointer">
+              <div class="flex justify-between text-[10px] text-gray-400 font-mono">
+                <span>5° (Strict Flat)</span>
+                <span>15° (Nominal xEMU)</span>
+                <span>25° (Extreme)</span>
+              </div>
+            </div>
+
+            <!-- Preferred Slope Slider -->
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-gray-700 dark:text-gray-300">Preferred Slope Incline:</span>
+                <span id="prefSlopeValueDisplay" class="font-mono font-bold text-blue-600 dark:text-blue-400">8.0°</span>
+              </div>
+              <input type="range" id="prefSlopeSlider" min="3" max="14" step="1" value="8" aria-label="Preferred Slope Incline in degrees" class="w-full accent-blue-600 h-1.5 cursor-pointer">
+              <div class="flex justify-between text-[10px] text-gray-400 font-mono">
+                <span>3°</span>
+                <span>8° (Comfortable Pace)</span>
+                <span>14°</span>
+              </div>
+            </div>
+
+            <!-- Walking Speed & Round Trip Options -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-1.5">
+                <label for="walkingSpeedInput" class="block text-[11px] font-bold text-gray-700 dark:text-gray-300">
+                  WALKING SPEED (km/h)
+                </label>
+                <input type="number" id="walkingSpeedInput" min="0.5" max="8.0" step="0.5" value="3.5" aria-label="Walking speed in kilometers per hour" class="w-full px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#131B2E] text-xs font-mono font-bold text-gray-900 dark:text-white">
+                <span class="text-[10px] text-gray-400 block font-mono">Nominal: 3.5 km/h</span>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 flex flex-col justify-between">
+                <label class="block text-[11px] font-bold text-gray-700 dark:text-gray-300">
+                  ROUND-TRIP EVA
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer mt-1">
+                  <input type="checkbox" id="roundTripCheckbox" aria-label="Calculate round-trip EVA traverse" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500">
+                  <span class="text-xs text-gray-600 dark:text-gray-300 font-medium">Out-and-Back</span>
+                </label>
+                <span class="text-[10px] text-gray-400 block font-mono mt-0.5">Enforces 50% PoNR buffer</span>
+              </div>
+            </div>
+
+            <!-- Collapsible Advanced Options -->
+            <details class="rounded-2xl border border-gray-200/80 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0F17] text-xs group">
+              <summary class="p-3.5 font-semibold text-gray-700 dark:text-gray-300 cursor-pointer flex items-center justify-between select-none">
+                <span class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-sliders text-blue-600"></i> Advanced Model Parameters
+                </span>
+                <i class="fa-solid fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform"></i>
+              </summary>
+              <div class="p-4 pt-0 border-t border-gray-200/60 dark:border-gray-800/60 space-y-3 mt-2">
+                <div>
+                  <div class="flex items-center justify-between text-xs mb-1">
+                    <span class="text-gray-600 dark:text-gray-400">Legacy Slope Penalty (k):</span>
+                    <span id="penaltyKValueDisplay" class="font-mono font-bold text-blue-600">10.0</span>
+                  </div>
+                  <input type="range" id="penaltyKSlider" min="1" max="30" step="1" value="10" aria-label="Legacy slope penalty coefficient k" class="w-full accent-blue-600 h-1.5 cursor-pointer">
                 </div>
+                <p class="text-[10px] text-gray-500 leading-relaxed italic">
+                  Higher penalty k forces the pathfinder to take wider detours around moderate slopes.
+                </p>
+              </div>
             </details>
 
-            <!-- 04 PRIMARY ACTION BUTTON -->
-            <button id="computeBtn" class="w-full bg-mars-accent hover:bg-mars-glow active:scale-[0.99] text-white font-bold py-3.5 rounded-lg shadow-lg flex flex-col items-center justify-center transition duration-200">
-                <span class="flex items-center gap-2 text-sm font-mono tracking-wider">
-                    <i class="fa-solid fa-rocket"></i> 04 COMPUTE EVA ROUTE
-                </span>
-                <span id="btnSubtext" class="text-[10px] opacity-80 font-normal mt-0.5">Terrain-aware A* + AI Safety Briefing</span>
-            </button>
+            <!-- Navigation Buttons -->
+            <div class="flex items-center gap-3 pt-2">
+              <button type="button" id="backToStep1Btn" aria-label="Go back to Step 1 Waypoint Selection" class="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 transition-all">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <button type="button" id="calculateRouteBtn" aria-label="Compute optimal Martian EVA traverse" class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 active:scale-95 transition-all">
+                <i class="fa-solid fa-rocket text-sm"></i>
+                <span>Compute Optimal Route</span>
+              </button>
+            </div>
+          </div>
 
-            <!-- AI STATUS & QUICK CONFIG -->
-            <div class="glass-panel p-2.5 rounded-lg border border-mars-border flex items-center justify-between text-[11px] font-mono">
-                <div class="flex items-center gap-2 text-green-400">
-                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                    <span>AI MISSION ANALYSIS: ONLINE</span>
-                </div>
-                <button onclick="openModal('apiKeyModal')" class="text-gray-400 hover:text-white transition" title="Secure API Key Settings">
-                    <i class="fa-solid fa-key"></i>
+          <!-- STEP 3 PANEL: RESULTS & TELEMETRY -->
+          <div class="planner-step-panel space-y-5 hidden" data-step-panel="3">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold block">Step 03 / 03</span>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Traversal Telemetry</h2>
+              </div>
+              <button type="button" id="backToStep2Btn" aria-label="Modify mission constraints and recalculate" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-mono font-semibold flex items-center gap-1">
+                <i class="fa-solid fa-pen-to-square"></i> Modify
+              </button>
+            </div>
+
+            <!-- Route Strategy Switcher Tabs -->
+            <div class="space-y-1.5">
+              <span class="text-[10px] font-mono uppercase tracking-wider text-gray-400 font-bold block">ACTIVE ROUTE STRATEGY</span>
+              <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5 text-xs">
+                <button type="button" data-strategy-mode="lowest_energy" aria-label="Lowest Energy Route Strategy" class="p-2 rounded-xl border border-blue-500 bg-blue-50/80 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-bold text-center text-xs transition-all">
+                  <div class="font-bold">Energy</div>
+                  <div class="text-[9px] opacity-75 font-mono">Minetti</div>
                 </button>
+                <button type="button" data-strategy-mode="fastest" aria-label="Fastest Route Strategy" class="p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="font-bold">Fastest</div>
+                  <div class="text-[9px] opacity-75 font-mono">Tobler</div>
+                </button>
+                <button type="button" data-strategy-mode="safest" aria-label="Safest Route Strategy" class="p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="font-bold">Safest</div>
+                  <div class="text-[9px] opacity-75 font-mono">&lt;8° Slope</div>
+                </button>
+                <button type="button" data-strategy-mode="comms_safe" aria-label="Comms Safe Route Strategy" class="p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="font-bold">Comms</div>
+                  <div class="text-[9px] opacity-75 font-mono">3D Mesh</div>
+                </button>
+                <button type="button" data-strategy-mode="legacy" aria-label="Legacy Exponential Route Strategy" class="p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all">
+                  <div class="font-bold">Legacy</div>
+                  <div class="text-[9px] opacity-75 font-mono">k-exp</div>
+                </button>
+              </div>
             </div>
 
-            <!-- CACHED ROUTES HISTORY -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border flex-1 overflow-hidden flex flex-col min-h-[140px]">
-                <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span><i class="fa-solid fa-clock-rotate-left text-mars-neon mr-1"></i> CACHED ROUTES</span>
-                    <span class="text-[10px] text-gray-500 font-mono">TODAY</span>
-                </label>
-                <div id="cachedRoutesList" class="space-y-1.5 overflow-y-auto custom-scrollbar flex-1 pr-1 text-xs">
-                    <!-- Loaded via JS -->
-                </div>
-            </div>
-        </aside>
-
-        <!-- Center Panel: Map + SIMULATED EVA TRAVERSE HUD + Profile Chart -->
-        <main id="panelMap" class="w-full flex-1 bg-mars-dark p-3 sm:p-3.5 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
-            
-            <!-- Map Container -->
-            <div class="relative glass-panel rounded-lg overflow-hidden border border-mars-border">
-                <div id="map"></div>
-                
-                <div class="absolute top-2 right-2 sm:top-3 sm:right-3 z-[1000] bg-mars-panel/95 backdrop-blur px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg border border-mars-border text-[11px] sm:text-xs flex flex-wrap items-center gap-2 sm:gap-4 text-gray-200 max-w-[90%] sm:max-w-none">
-                    <div class="flex items-center gap-2 sm:gap-3 border-r border-mars-border/60 pr-2 sm:pr-3">
-                        <label class="flex items-center gap-1 cursor-pointer">
-                            <input type="checkbox" id="layerRoute" checked onchange="toggleMapLayers()" class="accent-mars-accent">
-                            <span>Route</span>
-                        </label>
-                        <label class="flex items-center gap-1 cursor-pointer">
-                            <input type="checkbox" id="layerSlope" checked onchange="toggleMapLayers()" class="accent-yellow-400">
-                            <span>Hazards</span>
-                        </label>
-                        <label class="flex items-center gap-1 cursor-pointer">
-                            <input type="checkbox" id="layerWaypoints" checked onchange="toggleMapLayers()" class="accent-mars-neon">
-                            <span class="hidden sm:inline">Waypoints</span>
-                        </label>
-                    </div>
-                    <div class="flex items-center gap-2 sm:gap-3 font-mono text-[10px] sm:text-[11px]">
-                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 flex items-center justify-center text-[8px] font-bold text-black">S</span> 🟢 S</span>
-                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 flex items-center justify-center text-[8px] font-bold text-white">D</span> 🔴 D</span>
-                    </div>
-                </div>
-
-                <div class="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-[1000] bg-mars-panel/95 backdrop-blur px-2 py-1 sm:px-2.5 sm:py-1.5 rounded border border-mars-border text-[9px] sm:text-[10px] font-mono flex items-center gap-2 sm:gap-3 text-gray-300 flex-wrap max-w-[85%] sm:max-w-none">
-                    <span class="font-bold text-gray-400">RISK:</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-400"></span> Low</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400"></span> Mod</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> High</span>
-                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Barrier</span>
-                </div>
-            </div>
-
-            <!-- SIMULATED ROUTE PROGRESS & TELEMETRY HUD -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border text-xs flex flex-col gap-2">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center font-mono gap-1">
-                    <span class="text-mars-neon font-bold flex items-center gap-1.5 text-[11px] sm:text-xs">
-                        <span class="w-2 h-2 rounded-full bg-mars-neon animate-pulse"></span> SIMULATED EVA TRAVERSE HUD
-                    </span>
-                    <span id="hudProgressText" class="text-gray-300 font-bold text-[10px] sm:text-xs">342 m / 689 m (50% Traversed)</span>
-                </div>
-                <div class="w-full bg-mars-dark h-2 rounded-full overflow-hidden border border-mars-border">
-                    <div id="hudProgressBar" class="bg-gradient-to-r from-mars-neon via-mars-accent to-green-400 h-full transition-all duration-300" style="width: 50%"></div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] sm:text-[11px] font-mono pt-1">
-                    <div class="bg-mars-dark/60 p-2 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">CURRENT POSITION</span>
-                        <span id="hudPos" class="text-white font-bold block truncate">18.4472°N / 77.4521°E</span>
-                    </div>
-                    <div class="bg-mars-dark/60 p-2 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">TRAVERSED / REMAINING</span>
-                        <span id="hudDist" class="text-mars-neon font-bold block truncate">0.34 km / 0.35 km</span>
-                    </div>
-                    <div class="bg-mars-dark/60 p-2 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">LOCAL TERRAIN SLOPE</span>
-                        <span id="hudSlope" class="text-yellow-400 font-bold block truncate">4.8° (Moderate)</span>
-                    </div>
-                    <div class="bg-mars-dark/60 p-2 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">TERRAIN RISK EXPOSURE</span>
-                        <span id="hudRisk" class="text-green-400 font-bold block truncate">● LOW RISK</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Profile Chart Panel -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-1">
-                    <h3 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-mars-neon"></i> ROUTE ELEVATION & SLOPE PROFILE
-                    </h3>
-                    <div class="text-[10px] sm:text-[11px] font-mono text-gray-400">
-                        <span>Tap chart points to inspect location on map</span>
-                    </div>
-                </div>
-                <div class="h-32 sm:h-36">
-                    <canvas id="elevationChart"></canvas>
-                </div>
-            </div>
-        </main>
-
-        <!-- Right Panel: Telemetry & Briefing -->
-        <aside id="panelBriefing" class="w-full lg:w-96 bg-mars-panel border-t lg:border-t-0 lg:border-l border-mars-border p-3.5 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
-            
-            <!-- TELEMETRY METRIC TILES -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <div class="glass-panel p-2 rounded-lg border border-mars-border">
-                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">ROUTE DISTANCE</span>
-                    <div id="metricDistance" class="text-sm sm:text-base font-mono font-bold text-white mt-0.5">689 m</div>
-                    <span class="text-[8px] text-gray-500 block">Traversal Length</span>
-                </div>
-                
-                <div class="glass-panel p-2 rounded-lg border border-mars-border">
-                    <div class="flex justify-between items-center text-[9px] text-gray-400 uppercase tracking-wider">
-                        <span>MAX SLOPE</span>
-                        <span id="slopePct" class="font-mono text-yellow-400 font-bold">61%</span>
-                    </div>
-                    <div id="metricSlope" class="text-sm sm:text-base font-mono font-bold text-yellow-400 mt-0.5">9.2°</div>
-                    <div class="w-full bg-mars-dark h-1 rounded-full overflow-hidden border border-mars-border mt-0.5">
-                        <div id="slopeBar" class="bg-yellow-400 h-full transition-all duration-300" style="width: 61%"></div>
-                    </div>
-                    <span class="text-[8px] text-gray-500 block mt-0.5">Limit: <span id="limitSlopeText">15.0°</span></span>
-                </div>
-
-                <div class="glass-panel p-2 rounded-lg border border-mars-border">
-                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">EVA DURATION</span>
-                    <div id="metricDuration" class="text-sm sm:text-base font-mono font-bold text-mars-neon mt-0.5">12 min</div>
-                    <span id="metricEnergy" class="text-[8px] text-gray-400 block truncate">142 kcal / 0.59 MJ</span>
-                </div>
-
-                <div class="glass-panel p-2 rounded-lg border border-mars-border">
-                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">O2 CONSUMPTION</span>
-                    <div id="metricO2" class="text-sm sm:text-base font-mono font-bold text-green-400 mt-0.5">14.2 L</div>
-                    <span id="metricPlssPct" class="text-[8px] text-green-300 block">1.7% PLSS Tank (0.02kg)</span>
-                </div>
-
-                <div class="glass-panel p-2 rounded-lg border border-mars-border">
-                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">3D COMMS LoS</span>
-                    <div id="metricLoS" class="text-sm sm:text-base font-mono font-bold text-cyan-400 mt-0.5">100%</div>
-                    <span id="metricLoSSub" class="text-[8px] text-gray-500 block">Base Rover Relay</span>
-                </div>
-
-                <div class="glass-panel p-2 rounded-lg border border-mars-border">
-                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block">SOLAR HAZARDS</span>
-                    <div id="metricSolar" class="text-sm sm:text-base font-mono font-bold text-orange-400 mt-0.5">0 Glare</div>
-                    <span id="metricSolarSub" class="text-[8px] text-gray-500 block">Az 225° / Elev 45°</span>
-                </div>
-            </div>
-
-            <!-- ROUTE SAFETY STATUS -->
-            <div id="safetyStatusCard" class="glass-panel p-2.5 rounded-lg border border-green-500/40 bg-green-500/10 flex items-center justify-between">
+            <!-- Flight Director Go / No-Go Banner -->
+            <div id="missionGoStatusBadge" role="status" aria-live="polite" class="p-4 rounded-2xl border border-emerald-300 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-950/40 text-xs flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold">✓</div>
                 <div>
-                    <span class="text-[10px] text-gray-400 uppercase font-mono tracking-wider">FLIGHT DIRECTOR EVALUATION</span>
-                    <div id="statusBadge" class="text-xs font-bold font-mono text-green-400 flex items-center gap-1.5 mt-0.5">
-                        <i class="fa-solid fa-circle-check"></i> ROUTE STATUS: GO
-                    </div>
+                  <span class="font-bold text-emerald-900 dark:text-emerald-100 uppercase tracking-wider font-mono text-[11px] block">Flight Director Status: GO</span>
+                  <span class="text-emerald-700 dark:text-emerald-300">All physiological constraints within nominal EVA margin.</span>
                 </div>
-                <span class="text-[10px] sm:text-[11px] bg-green-500/20 text-green-300 font-mono px-2 py-0.5 rounded border border-green-500/30">
-                    WITHIN MARGINS
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900">GO FOR EVA</span>
+            </div>
+
+            <!-- Educational Simulation Notice -->
+            <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 text-[10px] font-mono text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap text-blue-600 dark:text-blue-400 text-sm"></i>
+              <span>Educational simulation — not flight certified. NASA Space Apps Challenge research project.</span>
+            </div>
+
+            <!-- Telemetry Bento Grid (6 Tiles) -->
+            <div class="grid grid-cols-2 gap-3 font-mono">
+              <!-- Tile 1: Distance -->
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800">
+                <span class="text-[10px] text-gray-400 block uppercase">TRAVERSE DISTANCE</span>
+                <span id="metricDistanceVal" class="text-base sm:text-lg font-bold text-gray-900 dark:text-white block mt-0.5">0 m</span>
+                <span id="metricDistanceSub" class="text-[9px] text-gray-500 block truncate mt-0.5">Traversal length</span>
+              </div>
+
+              <!-- Tile 2: Duration -->
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800">
+                <span class="text-[10px] text-gray-400 block uppercase">EVA DURATION</span>
+                <span id="metricDurationVal" class="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 block mt-0.5">0 min</span>
+                <span id="metricDurationSub" class="text-[9px] text-gray-500 block truncate mt-0.5">Estimated time</span>
+              </div>
+
+              <!-- Tile 3: Energy Cost -->
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800">
+                <span class="text-[10px] text-gray-400 block uppercase">METABOLIC COST</span>
+                <span id="metricEnergyVal" class="text-base sm:text-lg font-bold text-purple-600 dark:text-purple-400 block mt-0.5">0 kcal</span>
+                <span id="metricEnergySub" class="text-[9px] text-gray-500 block truncate mt-0.5">Minetti physical Joules</span>
+              </div>
+
+              <!-- Tile 4: Max Slope -->
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800">
+                <span class="text-[10px] text-gray-400 block uppercase">MAX SLOPE</span>
+                <span id="metricSlopeVal" class="text-base sm:text-lg font-bold text-amber-600 dark:text-amber-400 block mt-0.5">0°</span>
+                <div class="w-full bg-gray-200 dark:bg-gray-800 h-1.5 rounded-full overflow-hidden mt-1.5">
+                  <div id="metricSlopeBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <span id="metricSlopeSub" class="text-[9px] text-gray-500 block truncate mt-1">Limit margin</span>
+              </div>
+
+              <!-- Tile 5: Oxygen Consumption -->
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800">
+                <span class="text-[10px] text-gray-400 block uppercase">O₂ CONSUMPTION</span>
+                <span id="metricO2Val" class="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">0 L</span>
+                <span id="metricO2Sub" class="text-[9px] text-gray-500 block truncate mt-0.5">PLSS tank reserve</span>
+              </div>
+
+              <!-- Tile 6: Comms LoS -->
+              <div class="p-3.5 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800">
+                <span class="text-[10px] text-gray-400 block uppercase">3D RF LoS COVERAGE</span>
+                <span id="metricLoSVal" class="text-base sm:text-lg font-bold text-cyan-600 dark:text-cyan-400 block mt-0.5">100%</span>
+                <span id="metricLoSSub" class="text-[9px] text-gray-500 block truncate mt-0.5">Base mesh connectivity</span>
+              </div>
+            </div>
+
+            <!-- Route Profile Chart (Chart.js) -->
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                  <i class="fa-solid fa-chart-line text-blue-600"></i> Elevation & Slope Profile
                 </span>
+                <span class="text-[10px] font-mono text-gray-400">Hover points to locate on map</span>
+              </div>
+              <div class="h-36 sm:h-40 w-full">
+                <canvas id="elevationProfileCanvas"></canvas>
+              </div>
             </div>
 
-            <!-- WHY THIS ROUTE BREAKDOWN -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border text-xs space-y-2">
-                <div class="flex justify-between items-center font-bold text-gray-200 uppercase tracking-wider text-[11px]">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-brain text-mars-accent"></i> WHY THIS ROUTE?</span>
-                    <span class="text-mars-neon font-mono text-[10px]">DISTANCE ↔ SAFETY</span>
-                </div>
-                <div class="grid grid-cols-2 gap-1.5 text-[11px] font-mono pt-1">
-                    <div class="bg-mars-dark/60 p-1.5 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">DISTANCE COST</span>
-                        <span class="text-white font-bold block">+84 m</span>
-                    </div>
-                    <div class="bg-mars-dark/60 p-1.5 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">SLOPE REDUCTION</span>
-                        <span class="text-green-400 font-bold block">-31%</span>
-                    </div>
-                    <div class="bg-mars-dark/60 p-1.5 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">HAZARD ZONES</span>
-                        <span class="text-yellow-400 font-bold block">7 Avoided</span>
-                    </div>
-                    <div class="bg-mars-dark/60 p-1.5 rounded border border-mars-border/50">
-                        <span class="text-gray-400 block text-[9px]">MAX SLOPE</span>
-                        <span class="text-mars-neon font-bold block">9.2°</span>
-                    </div>
-                </div>
-                <p class="text-[10px] text-gray-400 italic leading-tight">Selected using exponential steepness penalty C = Δd + k·e^θ to optimize suit safety.</p>
+            <!-- Gemini AI Mission Briefing -->
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-200/80 dark:border-gray-800 space-y-2">
+              <div class="flex items-center justify-between pb-2 border-b border-gray-200/60 dark:border-gray-800">
+                <span class="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                  <i class="fa-solid fa-user-astronaut text-purple-600"></i> Flight Director Safety Briefing
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 font-semibold">Gemini AI</span>
+              </div>
+              <div id="aiBriefingContainer" class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed max-h-48 overflow-y-auto custom-scrollbar pr-1 space-y-2">
+                <p class="text-gray-400 italic">No briefing computed yet.</p>
+              </div>
             </div>
 
-            <!-- MISSION BRIEFING DISPLAY -->
-            <div class="glass-panel p-3 rounded-lg border border-mars-border flex-1 flex flex-col overflow-hidden min-h-[220px]">
-                <div class="flex justify-between items-center mb-2 border-b border-mars-border pb-2">
-                    <h3 class="text-xs font-bold text-gray-200 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-astronaut text-mars-accent"></i> MISSION BRIEFING
-                    </h3>
-                    <div class="flex items-center gap-1 font-mono">
-                        <button id="exportBriefingBtn" onclick="exportBriefing()" class="text-[10px] bg-mars-border hover:bg-gray-700 text-gray-200 px-2 py-0.5 rounded transition flex items-center gap-1">
-                            <i class="fa-solid fa-file-arrow-down text-mars-accent"></i> MD
-                        </button>
-                        <button onclick="exportGeoJSON()" class="text-[10px] bg-mars-border hover:bg-gray-700 text-cyan-400 px-2 py-0.5 rounded transition flex items-center gap-1">
-                            <i class="fa-solid fa-earth-americas"></i> GeoJSON
-                        </button>
-                        <button onclick="printMissionReport()" class="text-[10px] bg-mars-border hover:bg-gray-700 text-yellow-400 px-2 py-0.5 rounded transition flex items-center gap-1">
-                            <i class="fa-solid fa-print"></i> PDF
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="briefingContent" class="text-xs text-gray-300 overflow-y-auto custom-scrollbar flex-1 space-y-2 pr-1 leading-relaxed">
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fa-solid fa-compass text-3xl mb-2 text-mars-accent"></i>
-                        <p>Select location and click <b>04 COMPUTE EVA ROUTE</b> to generate path telemetry & NASA AI Briefing.</p>
-                    </div>
-                </div>
+            <!-- Export Actions Bar -->
+            <div class="flex items-center gap-2 pt-1 font-mono text-xs">
+              <button type="button" id="exportGeoJsonBtn" aria-label="Export route as GeoJSON" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 text-gray-800 dark:text-gray-200 font-semibold shadow-xs transition-all">
+                <i class="fa-solid fa-file-code text-blue-500"></i> GeoJSON
+              </button>
+              <button type="button" id="exportBriefingBtn" aria-label="Export safety briefing as Markdown" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 text-gray-800 dark:text-gray-200 font-semibold shadow-xs transition-all">
+                <i class="fa-solid fa-file-lines text-purple-500"></i> Markdown
+              </button>
+              <button type="button" id="exportCsvBtn" aria-label="Export waypoints telemetry as CSV" class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 text-gray-800 dark:text-gray-200 font-semibold shadow-xs transition-all">
+                <i class="fa-solid fa-table text-emerald-500"></i> CSV
+              </button>
             </div>
+
+            <!-- Recent Cached Routes History -->
+            <div class="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+              <span class="text-[10px] font-mono uppercase tracking-wider text-gray-400 font-bold block">RECENT CACHED TRAVERSES</span>
+              <div id="recentRoutesList" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
+                <!-- Loaded from /api/routes/cached -->
+              </div>
+            </div>
+          </div>
+
         </aside>
 
-    </div>
+        <!-- Right Column: Interactive Map Viewport -->
+        <div class="flex-1 relative flex flex-col h-full bg-[#0B0F17] overflow-hidden">
+          
+          <!-- Error Alert Banner -->
+          <div id="plannerErrorBanner" role="alert" aria-live="polite" class="absolute top-4 left-4 right-4 z-[500] hidden"></div>
 
-    <!-- ========================================== -->
-    <!-- MODAL WINDOWS & MENU AREA PANELS          -->
-    <!-- ========================================== -->
+          <!-- Leaflet Map Container -->
+          <div id="map" class="w-full h-full"></div>
 
-    <!-- 1. BEGINNER TUTORIAL & GUIDE MODAL (How-To, What-To, Why-To) -->
-    <div id="tutorialModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
-        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-3xl w-full border border-mars-border max-h-[90vh] flex flex-col overflow-hidden text-xs sm:text-sm">
-            <div class="flex justify-between items-center border-b border-mars-border pb-3">
-                <h3 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
-                    <i class="fa-solid fa-graduation-cap text-yellow-400"></i> Beginner Guide & Operational Manual
-                </h3>
-                <button onclick="closeModal('tutorialModal')" class="text-gray-400 hover:text-white text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            
-            <div class="overflow-y-auto custom-scrollbar flex-1 py-4 space-y-5 text-gray-300 pr-2">
-                <!-- WHAT SECTION -->
-                <section class="space-y-2 bg-mars-dark/60 p-4 rounded-lg border border-mars-border">
-                    <h4 class="font-bold text-mars-accent uppercase tracking-wider flex items-center gap-2 text-xs sm:text-sm font-mono">
-                        <i class="fa-solid fa-circle-info"></i> WHAT IS THIS SYSTEM?
-                    </h4>
-                    <p class="leading-relaxed">
-                        The <b>Interplanetary Survival Guide: Martian Route & EVA Planner</b> is a hybrid geospatial-graph-AI application designed for planning safe surface Extravehicular Activities (EVAs) for astronauts exploring **Jezero Crater, Mars**.
-                    </p>
-                </section>
+          <!-- Desktop Tactical Legend Overlay (Bottom-Left) -->
+          <div class="absolute bottom-4 left-4 z-[400] glass-panel px-3 py-2 rounded-xl text-[10px] font-mono flex items-center gap-3 text-gray-700 dark:text-gray-300 shadow-md hidden sm:flex">
+            <span class="font-bold text-gray-400 uppercase">HAZARD BANDS:</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> &lt;8° Safe</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 8–15° Caution</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-600"></span> &gt;15° Danger</span>
+          </div>
 
-                <!-- WHY SECTION -->
-                <section class="space-y-2 bg-mars-dark/60 p-4 rounded-lg border border-mars-border">
-                    <h4 class="font-bold text-mars-neon uppercase tracking-wider flex items-center gap-2 text-xs sm:text-sm font-mono">
-                        <i class="fa-solid fa-triangle-exclamation"></i> WHY DO WE NEED IT? (THE MARS SURVIVAL PROBLEM)
-                    </h4>
-                    <p class="leading-relaxed">
-                        Mars surface terrain presents extreme hazards: steep crater drop-offs ($>20^\circ$), loose regolith scree, sharp basalt boulders, and zero atmospheric pressure. Astronaut xEMU spacesuits have strict life support constraints (90-120 minutes of $O_2$ and battery). Walking in a straight line over a crater rim can cause slips, suit tears, or metabolic overexertion.
-                    </p>
-                    <div class="p-2.5 bg-mars-panel rounded border border-mars-accent/30 font-mono text-xs text-mars-glow">
-                        Cost Function: C = Δd + (k · e^θ)
-                    </div>
-                    <p class="text-xs text-gray-400">
-                        Our engine uses an exponential penalty function $C = \Delta d + k \cdot e^\theta$ to penalize slope steepness ($\theta$), routing astronauts *around* hazardous cliffs rather than over them.
-                    </p>
-                </section>
-
-                <!-- HOW TO SECTION -->
-                <section class="space-y-3 bg-mars-dark/60 p-4 rounded-lg border border-mars-border">
-                    <h4 class="font-bold text-green-400 uppercase tracking-wider flex items-center gap-2 text-xs sm:text-sm font-mono">
-                        <i class="fa-solid fa-list-check"></i> HOW TO USE THE SYSTEM (STEP-BY-STEP TUTORIAL)
-                    </h4>
-                    <ol class="list-decimal list-inside space-y-2 text-xs leading-relaxed text-gray-200">
-                        <li><b>Select Mission Route:</b> Use preset locations (e.g. *Perseverance Landing Site ➔ Neretva Delta*) or click <b>"Click Map Pins"</b> to set custom pins anywhere on the satellite map.</li>
-                        <li><b>Choose Strategy:</b> Select 🛡️ <b>SAFEST</b> (avoids all slopes), ⚖️ <b>BALANCED</b> (optimal balance), or ⚡ <b>FASTEST</b> (direct travel).</li>
-                        <li><b>Set Incline Ceiling:</b> Adjust the <b>Max Slope Barrier</b> slider (default $15^\circ$) to enforce your suit's safe slope threshold.</li>
-                        <li><b>Compute Route:</b> Click <b>04 COMPUTE EVA ROUTE</b> to trigger the A* algorithm and AI briefing generation.</li>
-                        <li><b>Inspect Telemetry & Briefing:</b> Analyze the red path overlay on the map, hover on the elevation profile chart, check suit consumable metrics, and review the NASA Flight Director Safety Briefing.</li>
-                    </ol>
-                </section>
-            </div>
-
-            <div class="pt-3 border-t border-mars-border flex justify-end">
-                <button onclick="closeModal('tutorialModal')" class="bg-mars-accent hover:bg-mars-glow text-white font-bold px-5 py-2 rounded text-xs">
-                    Got it, Back to Map
-                </button>
-            </div>
+          <!-- NASA Attribution Watermark (Bottom-Right) -->
+          <div class="absolute bottom-4 right-4 z-[400] glass-panel px-2.5 py-1 rounded-lg text-[9px] font-mono text-gray-500 dark:text-gray-400 shadow-sm hidden md:block">
+            <span>NASA / JPL-Caltech / USGS Mars Trek WMTS (Viking 232m + MOLA)</span>
+          </div>
         </div>
-    </div>
 
-    <!-- 2. PROJECT FILES & ARCHITECTURE MODAL -->
-    <div id="projectFilesModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
-        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-3xl w-full border border-mars-border max-h-[90vh] flex flex-col overflow-hidden text-xs sm:text-sm">
-            <div class="flex justify-between items-center border-b border-mars-border pb-3">
-                <h3 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
-                    <i class="fa-solid fa-folder-tree text-mars-neon"></i> Project Files & System Architecture
-                </h3>
-                <button onclick="closeModal('projectFilesModal')" class="text-gray-400 hover:text-white text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            
-            <div class="overflow-y-auto custom-scrollbar flex-1 py-4 space-y-4 text-gray-300 pr-2">
-                <!-- Repository Link Card -->
-                <div class="bg-mars-accent/10 p-3.5 rounded-lg border border-mars-accent/40 flex items-center justify-between">
-                    <div>
-                        <span class="font-bold text-white block">Official GitHub Repository</span>
-                        <span class="text-xs text-gray-400 font-mono">Abraham-K-Antony/Martian-Route-EVA-Planner</span>
-                    </div>
-                    <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" class="bg-mars-accent hover:bg-mars-glow text-white font-bold px-3 py-1.5 rounded text-xs flex items-center gap-1.5">
-                        <i class="fa-brands fa-github text-sm"></i> View Source
-                    </a>
-                </div>
+      </div>
 
-                <!-- File Directory Structure -->
-                <div class="bg-mars-dark p-4 rounded-lg border border-mars-border font-mono text-xs space-y-2">
-                    <h4 class="text-mars-neon font-bold text-xs uppercase mb-2">Codebase Structure:</h4>
-                    <div class="text-gray-300 space-y-1">
-                        <div>📁 <span class="text-white font-bold">core/</span></div>
-                        <div class="pl-4">├── <span class="text-yellow-400">pathfinder.py</span> <span class="text-gray-500">— A* graph search & slope penalty engine</span></div>
-                        <div class="pl-4">├── <span class="text-yellow-400">terrain_processor.py</span> <span class="text-gray-500">— Rasterio DEM parser & slope gradient solver</span></div>
-                        <div class="pl-4">├── <span class="text-yellow-400">ai_briefing.py</span> <span class="text-gray-500">— Gemini API Flight Director briefing module</span></div>
-                        <div class="pl-4">└── <span class="text-yellow-400">storage.py</span> <span class="text-gray-500">— SQLite route caching & preset waypoints</span></div>
-                        <div class="mt-2">📁 <span class="text-white font-bold">data/</span></div>
-                        <div class="pl-4">├── <span class="text-green-400">jezero_dem_downsampled.tif</span> <span class="text-gray-500">— Mars GeoTIFF DEM dataset</span></div>
-                        <div class="pl-4">└── <span class="text-green-400">waypoints.sqlite</span> <span class="text-gray-500">— SQLite database store</span></div>
-                        <div class="mt-2">📄 <span class="text-mars-neon font-bold">main.py</span> <span class="text-gray-500">— FastAPI REST application & Uvicorn web server</span></div>
-                        <div>📄 <span class="text-mars-neon font-bold">static/index.html</span> <span class="text-gray-500">— Single-page NASA Mission Control UI</span></div>
-                    </div>
-                </div>
-            </div>
+    </section>
 
-            <div class="pt-3 border-t border-mars-border flex justify-end">
-                <button onclick="closeModal('projectFilesModal')" class="bg-mars-border hover:bg-gray-700 text-white font-bold px-4 py-2 rounded text-xs">
-                    Close
-                </button>
-            </div>
+    <!-- ================================================================= -->
+    <!-- VIEW 3: HOW IT WORKS                                              -->
+    <!-- ================================================================= -->
+    <section id="view-how-it-works" class="page-view flex-1 flex flex-col hidden w-full py-12 lg:py-16">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        
+        <!-- Header -->
+        <div class="space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+            <span>SCIENTIFIC SPECIFICATION</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">How the Martian EVA Planner Works</h1>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+            Walking on Mars is fundamentally different from hiking on Earth. Explore the physical bioenergetics, IAU planetary coordinate systems, and NASA life-support limits powering our traversal engine.
+          </p>
         </div>
-    </div>
 
-    <!-- 3. SECURE CLIENT-SIDE API KEY MANAGER MODAL -->
-    <div id="apiKeyModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
-        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-md w-full border border-mars-border flex flex-col gap-4 text-xs sm:text-sm">
-            <div class="flex justify-between items-center border-b border-mars-border pb-3">
-                <h3 class="font-bold text-base text-white flex items-center gap-2">
-                    <i class="fa-solid fa-key text-green-400"></i> Secure Gemini API Key Manager
-                </h3>
-                <button onclick="closeModal('apiKeyModal')" class="text-gray-400 hover:text-white text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+        <!-- Section 1: The Mars Surface Traversal Problem -->
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-4 shadow-sm">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+            <span>The Martian EVA Survival Problem</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            Astronauts exploring Jezero Crater wear NASA Exploration Extravehicular Mobility Units (xEMU), weighing approximately <b>140 kg</b> (plus 80 kg astronaut mass = <b>220 kg total</b>). While Mars gravity ($0.378g$) reduces weight to ~83 kg-force, inertia remains identical to Earth. Moving across loose regolith, steep crater scarps ($>20^\circ$), and sharp impact ejecta requires massive energy expenditure.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 font-mono text-xs">
+            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800">
+              <span class="text-gray-400 block text-[10px]">COMBINED MASS</span>
+              <span class="text-base font-bold text-gray-900 dark:text-white">220 kg</span>
+              <span class="text-[10px] text-gray-500 block mt-0.5">80kg astronaut + 140kg suit</span>
             </div>
-            
-            <!-- Security Guarantee Box -->
-            <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-lg text-xs space-y-1.5 text-gray-300">
-                <span class="font-bold text-green-400 flex items-center gap-1 font-mono">
-                    <i class="fa-solid fa-shield-halved"></i> CLIENT-SIDE PRIVACY GUARANTEE:
-                </span>
-                <p class="leading-relaxed text-[11px] text-gray-300">
-                    Your Gemini API key is saved **ONLY in your browser's private `localStorage`**. It is never written to disk, database, or server logs. No admin or other user can access your key.
-                </p>
+            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800">
+              <span class="text-gray-400 block text-[10px]">SURFACE GRAVITY</span>
+              <span class="text-base font-bold text-blue-600 dark:text-blue-400">3.71 m/s²</span>
+              <span class="text-[10px] text-gray-500 block mt-0.5">0.378 × Earth gravity</span>
             </div>
-
-            <div class="space-y-2">
-                <label class="block font-semibold text-gray-300">Personal Google Gemini API Key:</label>
-                <input type="password" id="userApiKeyInput" placeholder="AIzaSy..." class="w-full bg-mars-dark border border-mars-border rounded p-2.5 text-white font-mono text-xs focus:outline-none focus:border-green-400">
-                <p class="text-[10px] text-gray-500">Need a free key? Get one from <a href="https://aistudio.google.com/" target="_blank" class="text-mars-neon hover:underline">Google AI Studio</a>.</p>
+            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800">
+              <span class="text-gray-400 block text-[10px]">SUIT RIGIDITY FACTOR</span>
+              <span class="text-base font-bold text-purple-600 dark:text-purple-400">1.35×</span>
+              <span class="text-[10px] text-gray-500 block mt-0.5">Pressurized joint resistance</span>
             </div>
-
-            <div class="flex items-center justify-between pt-2 border-t border-mars-border">
-                <button onclick="clearUserApiKey()" class="text-red-400 hover:underline text-xs flex items-center gap-1 font-mono">
-                    <i class="fa-solid fa-trash"></i> Remove Key
-                </button>
-                <div class="flex gap-2">
-                    <button onclick="closeModal('apiKeyModal')" class="bg-mars-border hover:bg-gray-700 text-gray-300 font-bold px-3 py-1.5 rounded text-xs">
-                        Cancel
-                    </button>
-                    <button onclick="saveUserApiKey()" class="bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-1.5 rounded text-xs flex items-center gap-1 font-mono">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Securely
-                    </button>
-                </div>
-            </div>
+          </div>
         </div>
-    </div>
 
-    <!-- 4. CONTACT & AUTHOR INFORMATION MODAL -->
-    <div id="contactModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-6">
-        <div class="glass-panel p-4 sm:p-6 rounded-xl max-w-lg w-full border border-mars-border flex flex-col gap-4 text-xs sm:text-sm">
-            <div class="flex justify-between items-center border-b border-mars-border pb-3">
-                <h3 class="font-bold text-base sm:text-lg text-white flex items-center gap-2">
-                    <i class="fa-solid fa-address-card text-mars-glow"></i> Contact & Author Information
-                </h3>
-                <button onclick="closeModal('contactModal')" class="text-gray-400 hover:text-white text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+        <!-- Section 2: Mathematical Formulations -->
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-6 shadow-sm">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+            <i class="fa-solid fa-square-root-variable text-blue-600"></i>
+            <span>Governing Equations & Physics Models</span>
+          </h2>
+
+          <!-- Formula 1: Minetti -->
+          <div class="space-y-2">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">1. Minetti Metabolic Energy Cost Function ($J/\text{m}$)</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+              Adapted from Minetti et al. (2002) for terrestrial gradient walking, scaled for reduced gravity and pressurized spacesuit mobility restrictions:
+            </p>
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-[#0B0F17] font-mono text-xs sm:text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800 overflow-x-auto">
+              C(i) = M_total · (280.5i⁵ - 58.7i⁴ - 76.8i³ + 26.8i² + 19.6i + 2.5) · (g_mars/g_earth) · 1.35
             </div>
-            
-            <div class="space-y-4 text-gray-300">
-                <div class="bg-mars-dark p-4 rounded-lg border border-mars-border flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-mars-accent/20 border border-mars-accent flex items-center justify-center text-mars-accent text-xl font-bold font-mono">
-                        AKA
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-white text-sm">Abraham K Antony</h4>
-                        <p class="text-xs text-mars-neon font-mono">Lead Systems Architect & Developer</p>
-                        <p class="text-[11px] text-gray-400 mt-0.5">Interplanetary Survival Guide: Martian Route & EVA Planner</p>
-                    </div>
-                </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 italic">
+              where $i = \tan(\theta)$ is slope grade, with an empirical floor of 150 J/m.
+            </p>
+          </div>
 
-                <div class="space-y-2 text-xs font-mono">
-                    <div class="flex items-center gap-2 p-2 bg-mars-panel rounded border border-mars-border">
-                        <i class="fa-brands fa-github text-mars-neon text-sm"></i>
-                        <span class="text-gray-400">GitHub:</span>
-                        <a href="https://github.com/Abraham-K-Antony" target="_blank" class="text-white hover:underline font-bold">github.com/Abraham-K-Antony</a>
-                    </div>
-                    <div class="flex items-center gap-2 p-2 bg-mars-panel rounded border border-mars-border">
-                        <i class="fa-solid fa-code-commit text-mars-accent text-sm"></i>
-                        <span class="text-gray-400">Repository:</span>
-                        <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" class="text-mars-glow hover:underline font-bold truncate">Martian-Route-EVA-Planner</a>
-                    </div>
-                </div>
-
-                <div class="text-[11px] text-gray-400 leading-relaxed italic border-t border-mars-border pt-3">
-                    Developed for interplanetary surface exploration, autonomous rover pathing, and astronaut safety navigation. Copyright © 2026 Abraham K Antony. All Rights Reserved.
-                </div>
+          <!-- Formula 2: Tobler Slope Speed -->
+          <div class="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">2. Slope-Dependent Traversal Speed ($m/s$)</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+              Walking speed decreases sharply on ascending grades and loose scree according to Tobler's hiking law with Mars safety bounds:
+            </p>
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-[#0B0F17] font-mono text-xs sm:text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800 overflow-x-auto">
+              v(i) = v_flat · exp(-3.5 · |i + 0.05|)
             </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 italic">
+              Bounded by a minimum safe traversal speed floor of $0.15\text{ m/s}$ ($0.54\text{ km/h}$).
+            </p>
+          </div>
 
-            <div class="pt-2 border-t border-mars-border flex justify-end">
-                <button onclick="closeModal('contactModal')" class="bg-mars-accent hover:bg-mars-glow text-white font-bold px-4 py-2 rounded text-xs">
-                    Close
-                </button>
+          <!-- Formula 3: IAU Mars Radius Grid Resolution -->
+          <div class="space-y-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">3. IAU Mars Radius DEM Resolution ($m/\text{px}$)</h3>
+            <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+              Earth WGS84 ellipsoids do not apply to Mars. We compute metric grid distance using the International Astronomical Union (IAU) Mars volumetric mean radius:
+            </p>
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-[#0B0F17] font-mono text-xs sm:text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800 overflow-x-auto">
+              dy = Δlat · (π/180) · 3,389,500 m,   dx = Δlon · (π/180) · 3,389,500 m · cos(lat_center)
             </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 italic">
+              yielding an exact spatial DEM resolution of $38.4\text{ m/px}$ across Jezero Crater.
+            </p>
+          </div>
         </div>
-    </div>
 
-    <!-- Application Script -->
-    <script src="/static/js/app.js"></script>
+        <!-- Section 3: The 5 Strategy Engines Compared -->
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-4 shadow-sm">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+            <i class="fa-solid fa-code-compare text-purple-600"></i>
+            <span>5 Multi-Route Strategies Compared</span>
+          </h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-mono border-collapse">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-400 text-[11px]">
+                  <th class="py-3 px-3">STRATEGY</th>
+                  <th class="py-3 px-3">PRIMARY OBJECTIVE</th>
+                  <th class="py-3 px-3">BEST FOR</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
+                <tr>
+                  <td class="py-3 px-3 font-bold text-blue-600 dark:text-blue-400">⚡ Lowest Energy</td>
+                  <td class="py-3 px-3">Minimizes total metabolic Joules & kcal</td>
+                  <td class="py-3 px-3">Standard nominal traverses</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-3 font-bold text-amber-600 dark:text-amber-400">⏱️ Fastest</td>
+                  <td class="py-3 px-3">Minimizes duration on Mars surface</td>
+                  <td class="py-3 px-3">Time-critical sampling runs</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-3 font-bold text-emerald-600 dark:text-emerald-400">🛡️ Safest</td>
+                  <td class="py-3 px-3">Strictly avoids slopes above 8°</td>
+                  <td class="py-3 px-3">Heavy payloads & rough scree</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-3 font-bold text-cyan-600 dark:text-cyan-400">📡 Comms Safe</td>
+                  <td class="py-3 px-3">Maximizes Line-of-Sight to base relays</td>
+                  <td class="py-3 px-3">Autonomous rover paired operations</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-3 font-bold text-gray-500 dark:text-gray-400">📜 Legacy Formula</td>
+                  <td class="py-3 px-3">Original distance + exponential penalty</td>
+                  <td class="py-3 px-3">Academic model benchmarking</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 4: Educational Simulation Disclaimer -->
+        <div class="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-200 space-y-2">
+          <div class="font-bold flex items-center gap-2 text-sm text-amber-900 dark:text-amber-100">
+            <i class="fa-solid fa-circle-exclamation text-amber-500"></i>
+            <span>Assumptions & Educational Simulation Scope</span>
+          </div>
+          <p class="leading-relaxed">
+            This application is designed as an educational and mission-architecture planning simulation for the NASA Space Apps Challenge. While built on real Mars GeoTIFF DEMs and peer-reviewed biomechanical formulas, it is <b>not certified for flight operations or real human spaceflight EVAs</b>. Actual Mars missions require sub-meter LIDAR, active rover scouting, and real-time PLSS sensor telemetry.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 4: MISSION SITES                                             -->
+    <!-- ================================================================= -->
+    <section id="view-mission-sites" class="page-view flex-1 flex flex-col hidden w-full py-12 lg:py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        <div class="space-y-3 max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+            <span>MARS 2020 EXPLORATION SITES</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">Jezero Crater Landmark Catalog</h1>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+            Explore key geologic and astrobiology sites surveyed by the Perseverance rover. Select any site to instantly configure an EVA route from its coordinates.
+          </p>
+        </div>
+
+        <!-- Dynamic Grid populated by mission-sites.js -->
+        <div id="missionSitesContainer"></div>
+
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 5: ABOUT                                                     -->
+    <!-- ================================================================= -->
+    <section id="view-about" class="page-view flex-1 flex flex-col hidden w-full py-12 lg:py-16">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        
+        <div class="space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+            <span>NASA SPACE APPS CHALLENGE 2026</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">About the Project & Team</h1>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+            The Martian Route & EVA Planner is a hybrid geospatial graph engine architected to solve the life-support routing problem for future human surface missions on Mars.
+          </p>
+        </div>
+
+        <!-- Author & Architect Profile Card -->
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+          <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center text-white text-2xl font-bold font-mono shadow-lg shrink-0">
+            AKA
+          </div>
+          <div class="space-y-2 text-center sm:text-left flex-1">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Abraham K Antony</h2>
+            <p class="text-xs font-mono text-blue-600 dark:text-blue-400">Lead Systems Architect & Developer</p>
+            <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+              Designed the graph pathfinding engine, metabolic bioenergetics models, and geospatial DEM analysis pipeline. Developed for interplanetary surface exploration, autonomous rover pathing, and astronaut safety navigation.
+            </p>
+            <div class="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+              <a href="https://github.com/Abraham-K-Antony" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-semibold">
+                <i class="fa-brands fa-github"></i> GitHub Profile
+              </a>
+              <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 text-xs font-semibold">
+                <i class="fa-solid fa-code-branch"></i> Repository
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architecture Breakdown -->
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-6 shadow-sm">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
+            <i class="fa-solid fa-sitemap text-blue-600"></i>
+            <span>System Architecture Overview</span>
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
+              <span class="font-bold text-blue-600 dark:text-blue-400 block text-sm">📁 Backend Service</span>
+              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                FastAPI application serving REST endpoints with Rasterio GIS processing, NumPy array operations, and SQLite route caching.
+              </p>
+            </div>
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
+              <span class="font-bold text-purple-600 dark:text-purple-400 block text-sm">🧠 A* Graph Engine</span>
+              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                Heapq-based 8-neighbor graph search calculating Minetti metabolic cost, Tobler speed decay, and hazard barriers.
+              </p>
+            </div>
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
+              <span class="font-bold text-emerald-600 dark:text-emerald-400 block text-sm">🤖 AI Flight Director</span>
+              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                Google Gemini API integration producing synthesized flight director safety briefings with client-side API key isolation.
+              </p>
+            </div>
+            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
+              <span class="font-bold text-amber-600 dark:text-amber-400 block text-sm">🎨 Modern Frontend</span>
+              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                Precompiled Tailwind v4 CLI, Vanilla ES modules, Leaflet map engine, and WCAG AA contrast accessibility.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 6: CONTACT                                                   -->
+    <!-- ================================================================= -->
+    <section id="view-contact" class="page-view flex-1 flex flex-col hidden w-full py-12 lg:py-16">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        <div class="space-y-3 text-center">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+            <span>COMMUNICATION CHANNEL</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">Contact & Mission Feedback</h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            Have questions about the Minetti model, found a bug in the Jezero elevation grid, or want to collaborate? Send a message directly to the engineering team.
+          </p>
+        </div>
+
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
+          
+          <div id="feedbackStatusBox" class="hidden mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
+            <div>
+              <span class="font-bold block">Transmission Recorded!</span>
+              <span>Thank you for your feedback. We review all planetary mission inputs.</span>
+            </div>
+          </div>
+
+          <form id="feedbackForm" class="space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="senderName" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Astronaut / Researcher Name</label>
+                <input type="text" id="senderName" name="senderName" placeholder="Dr. Mark Watney" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+              </div>
+              <div>
+                <label for="senderEmail" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Callsign or Email</label>
+                <input type="email" id="senderEmail" name="senderEmail" placeholder="mwatney@nasa.gov" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+              </div>
+            </div>
+
+            <div>
+              <label for="feedbackCategory" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Feedback Topic</label>
+              <select id="feedbackCategory" name="feedbackCategory" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                <option value="safety">Astronaut Safety & Physiological Model</option>
+                <option value="bug">Elevation Grid / Bug Report</option>
+                <option value="feature">New Feature Proposal</option>
+                <option value="general">NASA Space Apps Judge Feedback</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="feedbackMessage" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Message / Observation</label>
+              <textarea id="feedbackMessage" name="feedbackMessage" rows="4" placeholder="Enter your mission telemetry observation or feedback here..." class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required></textarea>
+            </div>
+
+            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>Send Mission Feedback</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Standardized Global Footer -->
+  <footer class="w-full border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#131B2E] transition-colors mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        
+        <!-- Brand & Mission Summary -->
+        <div class="md:col-span-2 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-sm">
+              <i class="fa-solid fa-planet-ringed"></i>
+            </div>
+            <span class="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">Martian Route & EVA Planner</span>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
+            Autonomous Mars surface traverse optimization for extravehicular operations in Jezero Crater. Developed for space enthusiasts, students, and planetary science researchers.
+          </p>
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[11px] font-mono bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/40">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+            <span>Educational simulation — not flight certified.</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider font-mono">Platform</h3>
+          <ul class="space-y-2 text-xs">
+            <li><a href="/" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">Home</a></li>
+            <li><a href="/planner" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">Mission Planner</a></li>
+            <li><a href="/how-it-works" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">How It Works</a></li>
+            <li><a href="/mission-sites" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">Mission Sites</a></li>
+          </ul>
+        </div>
+
+        <!-- Space Apps & Credits -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider font-mono">Project Context</h3>
+          <ul class="space-y-2 text-xs">
+            <li><a href="/about" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">About Team & Architecture</a></li>
+            <li><a href="/contact" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">Feedback & Contact</a></li>
+            <li><a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"><i class="fa-brands fa-github"></i> GitHub Source</a></li>
+            <li><a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> NASA Mars Trek</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400 dark:text-gray-500">
+        <div>
+          Copyright © 2026 <a href="https://github.com/Abraham-K-Antony" target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-600 dark:text-gray-300 hover:underline">Abraham K Antony</a>. All rights reserved.
+        </div>
+        <div class="flex items-center gap-3 font-mono text-[11px]">
+          <span>Jezero Crater DEM 38.4m</span>
+          <span>•</span>
+          <span>Minetti Metabolic Model</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Secure Client-Side Gemini API Key Modal -->
+  <div id="apiKeySettingsModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-key"></i>
+          </div>
+          <h3 class="font-bold text-base text-gray-900 dark:text-white">Gemini API Key Settings</h3>
+        </div>
+        <button id="closeApiKeyModalBtn" type="button" aria-label="Close API Key Configuration Modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs text-emerald-800 dark:text-emerald-300 space-y-1">
+        <span class="font-bold flex items-center gap-1.5 font-mono text-[11px]">
+          <i class="fa-solid fa-shield-halved"></i> CLIENT-SIDE PRIVACY GUARANTEE:
+        </span>
+        <p class="leading-relaxed">
+          Your Google Gemini API key is stored <b>strictly in your browser's private localStorage</b>. It is never logged, saved in the database, or transmitted to any third party.
+        </p>
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="userGeminiApiKeyInput" class="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+          Personal Google Gemini API Key:
+        </label>
+        <input type="password" id="userGeminiApiKeyInput" aria-label="Personal Google Gemini API Key" placeholder="AIzaSy..." class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs font-mono text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <p class="text-[10px] text-gray-400">
+          Need a key? Generate a free key from <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Google AI Studio</a>.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2">
+        <button type="button" id="saveApiKeyModalBtn" aria-label="Save API Key Securely" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:scale-95 transition-all">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>Save Key Securely</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Bootstrap (ES Module) -->
+  <script type="module" src="/static/js/app.js"></script>
 </body>
 </html>

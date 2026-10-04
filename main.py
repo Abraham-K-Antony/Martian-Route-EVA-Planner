@@ -66,12 +66,17 @@ class RouteRequest(BaseModel):
     end_name: Optional[str] = "Custom Point B"
 
 @app.api_route("/", methods=["GET", "HEAD"])
+@app.get("/planner")
+@app.get("/how-it-works")
+@app.get("/mission-sites")
+@app.get("/about")
+@app.get("/contact")
 async def read_index():
     """Serves the main NASA Mission Control single-page web app."""
     index_path = os.path.join(STATIC_DIR, "index.html")
     if not os.path.exists(index_path):
         raise HTTPException(status_code=404, detail="index.html not found in static folder.")
-    return FileResponse(index_path)
+    return FileResponse(index_path, headers={"Cache-Control": "no-cache, must-revalidate"})
 
 @app.get("/favicon.ico")
 async def favicon():

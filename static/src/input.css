@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-canvas: #FAFAFA;
+    --color-surface: #FFFFFF;
+    --color-surface-subtle: #F3F4F6;
+    --color-surface-hover: #F8FAFC;
+    --color-border: #E5E7EB;
+    --color-border-subtle: #F3F4F6;
+    
+    --color-primary: #2563EB;
+    --color-primary-hover: #1D4ED8;
+    --color-primary-subtle: #EFF6FF;
+    
+    --color-secondary: #7C3AED;
+    --color-secondary-hover: #6D28D9;
+    --color-secondary-subtle: #F5F3FF;
+    
+    --color-text-main: #1F2937;
+    --color-text-muted: #6B7280;
+    --color-text-subtle: #9CA3AF;
+
+    /* Isolated Hazard Scale (Used exclusively for terrain risk / safety classification) */
+    --color-hazard-safe: #16A34A;
+    --color-hazard-safe-bg: #DCFCE7;
+    --color-hazard-safe-border: #86EFAC;
+    
+    --color-hazard-caution: #F59E0B;
+    --color-hazard-caution-bg: #FEF3C7;
+    --color-hazard-caution-border: #FCD34D;
+    
+    --color-hazard-danger: #DC2626;
+    --color-hazard-danger-bg: #FEE2E2;
+    --color-hazard-danger-border: #FCA5A5;
+
+    --shadow-soft: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 6px 20px -4px rgba(0, 0, 0, 0.03);
+    --shadow-card: 0 4px 14px 0 rgba(0, 0, 0, 0.06);
+    --shadow-floating: 0 12px 36px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -2px rgba(0, 0, 0, 0.05);
+
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(229, 231, 235, 0.7);
+  }
+
+  .dark {
+    --color-canvas: #0B0F17;
+    --color-surface: #131B2E;
+    --color-surface-subtle: #19243C;
+    --color-surface-hover: #1E2B47;
+    --color-border: #23314E;
+    --color-border-subtle: #1C283F;
+
+    --color-primary: #3B82F6;
+    --color-primary-hover: #2563EB;
+    --color-primary-subtle: rgba(59, 130, 246, 0.12);
+
+    --color-secondary: #8B5CF6;
+    --color-secondary-hover: #7C3AED;
+    --color-secondary-subtle: rgba(139, 92, 246, 0.12);
+
+    --color-text-main: #F9FAFB;
+    --color-text-muted: #9CA3AF;
+    --color-text-subtle: #6B7280;
+
+    /* Isolated Hazard Scale in Dark Mode */
+    --color-hazard-safe: #22C55E;
+    --color-hazard-safe-bg: rgba(34, 197, 94, 0.15);
+    --color-hazard-safe-border: rgba(34, 197, 94, 0.35);
+
+    --color-hazard-caution: #FBBF24;
+    --color-hazard-caution-bg: rgba(251, 191, 36, 0.15);
+    --color-hazard-caution-border: rgba(251, 191, 36, 0.35);
+
+    --color-hazard-danger: #EF4444;
+    --color-hazard-danger-bg: rgba(239, 68, 68, 0.15);
+    --color-hazard-danger-border: rgba(239, 68, 68, 0.35);
+
+    --shadow-soft: 0 2px 8px -2px rgba(0, 0, 0, 0.35);
+    --shadow-card: 0 4px 18px 0 rgba(0, 0, 0, 0.45);
+    --shadow-floating: 0 14px 40px -4px rgba(0, 0, 0, 0.65);
+
+    --glass-bg: rgba(19, 27, 46, 0.85);
+    --glass-border: rgba(35, 49, 78, 0.75);
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+  }
+
+  /* Tabular Numerals for Mission Telemetry */
+  .tabular-nums, .font-mono {
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-nav {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Custom Micro-Interactions */
+.card-hover {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.btn-press {
+  transition: transform 0.1s ease, filter 0.15s ease, background-color 0.15s ease;
+}
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* Custom Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-subtle);
+}
+
+/* Map specific styling */
+#map {
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+  background: #0B0F17;
+  z-index: 1;
+}
+
+/* Draggable Bottom Sheet for Mobile */
+.bottom-sheet {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scroll Reveal Animation */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Accessible Focus Outlines */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal-on-scroll {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

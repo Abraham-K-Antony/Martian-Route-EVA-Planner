@@ -68,9 +68,9 @@ def save_route(name: str, start: Tuple[float, float], end: Tuple[float, float],
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             name, start[0], start[1], end[0], end[1],
-            stats.get("distance", 0.0),
+            stats.get("distance", stats.get("distance_m", 0.0)),
             stats.get("max_slope", 0.0),
-            stats.get("duration", 0.0),
+            stats.get("duration", stats.get("duration_h", 0.0)),
             json.dumps(geojson),
             briefing
         ))
