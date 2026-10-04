@@ -1014,68 +1014,80 @@
     <section id="view-about" class="page-view flex-1 flex flex-col hidden w-full py-12 lg:py-16">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
-        <div class="space-y-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-            <span>NASA SPACE APPS CHALLENGE 2026</span>
+        <!-- Header with Project Description & Credential Line -->
+        <div class="space-y-4">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium bg-amber-50 text-amber-900 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-sm">
+            <i class="fa-solid fa-award text-amber-500"></i>
+            <span>NASA Space Apps Challenge 2024 Global Nominee, Best Galactic Solution Award</span>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">About the Project & Team</h1>
-          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-            The Martian Route & EVA Planner is a hybrid geospatial graph engine architected to solve the life-support routing problem for future human surface missions on Mars.
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">About Martian Route & EVA Planner</h1>
+          <p class="text-base text-gray-700 dark:text-gray-300 leading-relaxed">
+            <b>Martian Route & EVA Planner</b>, a hybrid geospatial + graph-search + AI tool that plans safe, low-energy walking routes for astronauts across Jezero Crater on Mars.
           </p>
         </div>
 
-        <!-- Author & Architect Profile Card -->
-        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center gap-6">
-          <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center text-white text-2xl font-bold font-mono shadow-lg shrink-0">
-            AKA
-          </div>
-          <div class="space-y-2 text-center sm:text-left flex-1">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Abraham K Antony</h2>
-            <p class="text-xs font-mono text-blue-600 dark:text-blue-400">Lead Systems Architect & Developer</p>
-            <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-              Designed the graph pathfinding engine, metabolic bioenergetics models, and geospatial DEM analysis pipeline. Developed for interplanetary surface exploration, autonomous rover pathing, and astronaut safety navigation.
-            </p>
-            <div class="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
-              <a href="https://github.com/Abraham-K-Antony" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 text-xs font-semibold">
-                <i class="fa-brands fa-github"></i> GitHub Profile
-              </a>
-              <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 text-xs font-semibold">
-                <i class="fa-solid fa-code-branch"></i> Repository
-              </a>
-            </div>
+        <!-- Team Section -->
+        <div class="space-y-4">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <i class="fa-solid fa-user-astronaut text-blue-600"></i>
+            <span>Project Developer</span>
+          </h2>
+          <div id="teamContainer">
+            <!-- Dynamically rendered via static/js/pages/about.js -->
           </div>
         </div>
 
-        <!-- Architecture Breakdown -->
-        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-6 shadow-sm">
+        <!-- Tech Stack Strip -->
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 space-y-4 shadow-sm">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
-            <i class="fa-solid fa-sitemap text-blue-600"></i>
-            <span>System Architecture Overview</span>
+            <i class="fa-solid fa-layer-group text-purple-600"></i>
+            <span>Tech Stack</span>
           </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
-              <span class="font-bold text-blue-600 dark:text-blue-400 block text-sm">📁 Backend Service</span>
-              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                FastAPI application serving REST endpoints with Rasterio GIS processing, NumPy array operations, and SQLite route caching.
+          <div class="flex flex-wrap gap-2.5">
+            <span class="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">FastAPI</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">NumPy / rasterio</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">A* pathfinding</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">Google Gemini</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">Leaflet</span>
+            <span class="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">Chart.js</span>
+          </div>
+        </div>
+
+        <!-- Open Source & Live Site Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 space-y-4 shadow-sm flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 text-gray-900 dark:text-white font-bold text-base">
+                <i class="fa-brands fa-github text-lg"></i>
+                <span>Open Source Repository</span>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                Released under the open MIT License. Source code and issue tracking available on GitHub.
               </p>
             </div>
-            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
-              <span class="font-bold text-purple-600 dark:text-purple-400 block text-sm">🧠 A* Graph Engine</span>
-              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                Heapq-based 8-neighbor graph search calculating Minetti metabolic cost, Tobler speed decay, and hazard barriers.
+            <div>
+              <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-gray-900 hover:bg-black text-white dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors">
+                <i class="fa-solid fa-code-branch"></i>
+                <span>View source</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 space-y-4 shadow-sm flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 text-gray-900 dark:text-white font-bold text-base">
+                <i class="fa-solid fa-globe text-blue-600 text-lg"></i>
+                <span>Live Application</span>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                Deploys live on Render cloud infrastructure serving REST pathfinding endpoints.
               </p>
             </div>
-            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
-              <span class="font-bold text-emerald-600 dark:text-emerald-400 block text-sm">🤖 AI Flight Director</span>
-              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                Google Gemini API integration producing synthesized flight director safety briefings with client-side API key isolation.
-              </p>
-            </div>
-            <div class="p-4 rounded-2xl bg-gray-50 dark:bg-[#0B0F17] border border-gray-100 dark:border-gray-800 space-y-2">
-              <span class="font-bold text-amber-600 dark:text-amber-400 block text-sm">🎨 Modern Frontend</span>
-              <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                Precompiled Tailwind v4 CLI, Vanilla ES modules, Leaflet map engine, and WCAG AA contrast accessibility.
-              </p>
+            <div>
+              <a href="https://martian-route-eva-planner.onrender.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                <span>Visit Live Site</span>
+              </a>
             </div>
           </div>
         </div>
@@ -1091,56 +1103,33 @@
         
         <div class="space-y-3 text-center">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-            <span>COMMUNICATION CHANNEL</span>
+            <span>COMMUNICATION & FEEDBACK</span>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">Contact & Mission Feedback</h1>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">Contact & Feedback</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            Have questions about the Minetti model, found a bug in the Jezero elevation grid, or want to collaborate? Send a message directly to the engineering team.
+            Report bugs, request features, or connect directly with the developer.
           </p>
         </div>
 
-        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-6 sm:p-8 shadow-sm">
-          
-          <div id="feedbackStatusBox" class="hidden mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-3">
-            <i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>
-            <div>
-              <span class="font-bold block">Transmission Recorded!</span>
-              <span>Thank you for your feedback. We review all planetary mission inputs.</span>
-            </div>
+        <div class="bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm space-y-6 text-center">
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <!-- Primary Action -->
+            <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner/issues" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+              <i class="fa-solid fa-circle-dot"></i>
+              <span>Report an issue or suggest a feature</span>
+            </a>
+            
+            <!-- Secondary Action -->
+            <a href="https://github.com/Abraham-K-Antony" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white active:scale-95 transition-all">
+              <i class="fa-brands fa-github"></i>
+              <span>Follow the author on GitHub</span>
+            </a>
           </div>
 
-          <form id="feedbackForm" class="space-y-5">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="senderName" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Astronaut / Researcher Name</label>
-                <input type="text" id="senderName" name="senderName" placeholder="Dr. Mark Watney" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-              </div>
-              <div>
-                <label for="senderEmail" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Callsign or Email</label>
-                <input type="email" id="senderEmail" name="senderEmail" placeholder="mwatney@nasa.gov" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-              </div>
-            </div>
-
-            <div>
-              <label for="feedbackCategory" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Feedback Topic</label>
-              <select id="feedbackCategory" name="feedbackCategory" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                <option value="safety">Astronaut Safety & Physiological Model</option>
-                <option value="bug">Elevation Grid / Bug Report</option>
-                <option value="feature">New Feature Proposal</option>
-                <option value="general">NASA Space Apps Judge Feedback</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="feedbackMessage" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Message / Observation</label>
-              <textarea id="feedbackMessage" name="feedbackMessage" rows="4" placeholder="Enter your mission telemetry observation or feedback here..." class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0B0F17] text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required></textarea>
-            </div>
-
-            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-95 transition-all">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>Send Mission Feedback</span>
-            </button>
-          </form>
+          <!-- Mandatory Line Under Buttons -->
+          <div class="pt-4 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 italic font-mono">
+            This is an educational simulation, not flight-certified.
+          </div>
         </div>
 
       </div>
@@ -1162,11 +1151,11 @@
             <span class="font-extrabold text-base tracking-tight text-gray-900 dark:text-white">Martian Route & EVA Planner</span>
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
-            Autonomous Mars surface traverse optimization for extravehicular operations in Jezero Crater. Developed for space enthusiasts, students, and planetary science researchers.
+            Autonomous Mars surface traverse optimization for extravehicular operations in Jezero Crater.
           </p>
           <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[11px] font-mono bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900/40">
             <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
-            <span>Educational simulation — not flight certified.</span>
+            <span>This is an educational simulation, not flight-certified.</span>
           </div>
         </div>
 
@@ -1181,14 +1170,17 @@
           </ul>
         </div>
 
-        <!-- Space Apps & Credits -->
+        <!-- Open Source & License -->
         <div class="space-y-3">
-          <h3 class="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider font-mono">Project Context</h3>
+          <h3 class="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider font-mono">Project Links</h3>
           <ul class="space-y-2 text-xs">
             <li><a href="/about" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">About Team & Architecture</a></li>
-            <li><a href="/contact" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">Feedback & Contact</a></li>
-            <li><a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"><i class="fa-brands fa-github"></i> GitHub Source</a></li>
-            <li><a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> NASA Mars Trek</a></li>
+            <li><a href="/contact" data-nav class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors">Contact & Feedback</a></li>
+            <li>
+              <a href="https://github.com/Abraham-K-Antony/Martian-Route-EVA-Planner" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1.5">
+                <i class="fa-brands fa-github"></i> GitHub Repository (MIT License)
+              </a>
+            </li>
           </ul>
         </div>
       </div>
@@ -1196,12 +1188,12 @@
       <!-- Bottom Bar -->
       <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400 dark:text-gray-500">
         <div>
-          Copyright © 2026 <a href="https://github.com/Abraham-K-Antony" target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-600 dark:text-gray-300 hover:underline">Abraham K Antony</a>. All rights reserved.
+          Copyright © 2026 <a href="https://github.com/Abraham-K-Antony" target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-600 dark:text-gray-300 hover:underline">Abraham K Antony</a>. MIT License.
         </div>
         <div class="flex items-center gap-3 font-mono text-[11px]">
-          <span>Jezero Crater DEM 38.4m</span>
+          <span>Mars elevation data: see How It Works</span>
           <span>•</span>
-          <span>Minetti Metabolic Model</span>
+          <span>Minetti Bioenergetics Model</span>
         </div>
       </div>
     </div>

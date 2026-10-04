@@ -8,6 +8,7 @@ import { initTheme } from './theme.js';
 import { initRouter } from './router.js';
 import { initHomePage } from './pages/home.js';
 import { initMissionSitesPage } from './pages/mission-sites.js';
+import { initAboutPage } from './pages/about.js';
 import { initContactPage } from './pages/contact.js';
 import { initMap, resizeMap } from './map.js';
 import { initElevationChart } from './chart.js';
@@ -67,6 +68,8 @@ function handlePageViewActivation(path, viewId) {
     activatePlannerView();
   } else if (path === '/mission-sites' || viewId === 'view-mission-sites') {
     initMissionSitesPage();
+  } else if (path === '/about' || viewId === 'view-about') {
+    initAboutPage();
   } else if (path === '/contact' || viewId === 'view-contact') {
     initContactPage();
   }
