@@ -12,7 +12,7 @@ import { initAboutPage } from './pages/about.js';
 import { initContactPage } from './pages/contact.js';
 import { initMap, resizeMap } from './map.js';
 import { initElevationChart } from './chart.js';
-import { initPlannerWorkflow, executeRouteCalculation } from './stepper.js';
+import { initPlannerWorkflow, executeRouteCalculation, updateCoordinateInputs } from './stepper.js';
 
 console.log(
   "%c Martian Route & EVA Planner %c v2.1 Modular Engine by Abraham K Antony ",
@@ -83,15 +83,7 @@ async function activatePlannerView() {
   if (!isPlannerInitialized) {
     // Initialize Leaflet Map with callback on marker drag
     initMap((coords, shouldRecalculate) => {
-      const sLatEl = document.getElementById('coordStartLat');
-      const sLonEl = document.getElementById('coordStartLon');
-      const eLatEl = document.getElementById('coordEndLat');
-      const eLonEl = document.getElementById('coordEndLon');
-
-      if (sLatEl) sLatEl.value = coords.startLat.toFixed(4);
-      if (sLonEl) sLonEl.value = coords.startLon.toFixed(4);
-      if (eLatEl) eLatEl.value = coords.endLat.toFixed(4);
-      if (eLonEl) eLonEl.value = coords.endLon.toFixed(4);
+      updateCoordinateInputs(coords.startLat, coords.startLon, coords.endLat, coords.endLon);
 
       if (shouldRecalculate) {
         executeRouteCalculation();

@@ -5,7 +5,17 @@
  */
 
 import { getPresets, getCachedRoutes, calculateRoute } from './api.js';
-import { getSavedConstraints, saveConstraints, popSelectedStartPreset, getStoredApiKey, setStoredApiKey } from './state.js';
+import { 
+  getSavedConstraints, 
+  saveConstraints, 
+  popSelectedStartPreset, 
+  getStoredApiKey, 
+  setStoredApiKey,
+  saveMissionPoints,
+  getSavedMissionPoints,
+  saveActiveStep,
+  getSavedActiveStep
+} from './state.js';
 import { showToast } from './toast.js';
 import { setStartMarker, setEndMarker, getCoordinates, renderCalculatedRoute, activateMapPickMode, toggleLayer, resizeMap } from './map.js';
 import { updateElevationChartData } from './chart.js';
@@ -29,6 +39,20 @@ export async function initPlannerWorkflow() {
 
   // Load presets & initialize start/end markers
   await loadAndBindPresets();
+
+  // Restore saved points from sessionStorage if available
+  const savedPoints = getSavedMissionPoints();
+  if (savedPoints && savedPoints.startLat && savedPoints.endLat) {
+    updateCoordinateInputs(savedPoints.startLat, savedPoints.startLon, savedPoints.endLat, savedPoints.endLon);
+    setStartMarker(savedPoints.startLat, savedPoints.startLon, savedPoints.startName || 'Start');
+    setEndMarker(savedPoints.endLat, savedPoints.endLon, savedPoints.endName || 'Destination');
+  }
+
+  // Restore saved active step
+  const savedStep = getSavedActiveStep();
+  if (savedStep && savedStep !== activeStep) {
+    goToStep(savedStep);
+  }
 
   // Load cached routes from SQLite
   await loadRecentRoutesList();
@@ -70,6 +94,7 @@ function setupStepperNavigation() {
 
 export function goToStep(stepNumber) {
   activeStep = stepNumber;
+  saveActiveStep(stepNumber);
 
   // Toggle step panels
   document.querySelectorAll('.planner-step-panel').forEach(panel => {
@@ -106,6 +131,27 @@ export function goToStep(stepNumber) {
 
   // Ensure map redraws when switching into step 3 or mobile bottom sheet
   resizeMap();
+}
+
+export function updateCoordinateInputs(sLat, sLon, eLat, eLon, sName, eName) {
+  const sLatEl = document.getElementById('coordStartLat');
+  const sLonEl = document.getElementById('coordStartLon');
+  const eLatEl = document.getElementById('coordEndLat');
+  const eLonEl = document.getElementById('coordEndLon');
+
+  if (sLatEl) sLatEl.value = parseFloat(sLat).toFixed(4);
+  if (sLonEl) sLonEl.value = parseFloat(sLon).toFixed(4);
+  if (eLatEl) eLatEl.value = parseFloat(eLat).toFixed(4);
+  if (eLonEl) eLonEl.value = parseFloat(eLon).toFixed(4);
+
+  saveMissionPoints({
+    startLat: parseFloat(sLat),
+    startLon: parseFloat(sLon),
+    endLat: parseFloat(eLat),
+    endLon: parseFloat(eLon),
+    startName: sName || 'Start Base',
+    endName: eName || 'Destination Target'
+  });
 }
 
 /**
