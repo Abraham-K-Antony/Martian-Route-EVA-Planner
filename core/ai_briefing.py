@@ -32,17 +32,27 @@ def _call_gemini_fast(prompt: str, key: str) -> Optional[str]:
         pass
     return None
 
+import re
+
+def _sanitize_name(name: str) -> str:
+    if not name:
+        return "Waypoint"
+    clean = re.sub(r'[^a-zA-Z0-9\s\-_]', '', str(name)).strip()
+    return clean[:30] if clean else "Waypoint"
+
 def generate_eva_briefing(stats: Dict, api_key: Optional[str] = None) -> str:
     """
     Generates a NASA Flight Director EVA Hazard Briefing.
-    Prioritizes ultra-fast response. Uses ThreadPoolExecutor with a 2.0s hard cap.
-    If Gemini API takes >2.0s, rate-limited, or unavailable, instantly returns the
+    Prioritizes structured telemetry. Uses ThreadPoolExecutor with a 15.0s hard cap.
+    If Gemini API takes >15.0s, rate-limited, or unavailable, instantly returns the
     structured NASA telemetry briefing.
     """
     dist_m = stats.get('distance_m', stats.get('distance', 0))
     duration_h = stats.get('duration_h', stats.get('duration', 0))
     max_slope = stats.get('max_slope', 0)
     elev_gain = stats.get('elevation_gain_m', 0)
+    start_name = _sanitize_name(stats.get('start_name', 'Start Base'))
+    end_name = _sanitize_name(stats.get('end_name', 'Destination Target'))
     
     # Pre-computed NASA xEMU telemetry consumables from EVASafetyAnalyzer
     o2_liters = stats.get('o2_consumed_liters', round(duration_h * 60 * 1.1, 1))
@@ -57,7 +67,7 @@ def generate_eva_briefing(stats: Dict, api_key: Optional[str] = None) -> str:
     
     offline_briefing = f"""### 🚀 NASA EVA MISSION BRIEFING & TELEMETRY
 
-**FLIGHT DIRECTOR DIRECTIVE:** EVA-JEZERO-{int(dist_m)}
+**FLIGHT DIRECTOR DIRECTIVE:** EVA-JEZERO-{int(dist_m)} ({start_name} ➔ {end_name})
 
 ---
 
@@ -99,6 +109,8 @@ Include required suit consumables, specific traversal risks, solar glare/aspect 
 Do not use conversational filler. Format with clear Markdown headings and bullet points.
 
 Route Metrics:
+- Start Sector: {start_name}
+- Destination Sector: {end_name}
 - Total Distance: {dist_m} meters
 - Maximum Incline: {max_slope} degrees
 - Average Slope: {stats.get('avg_slope', 'N/A')} degrees
@@ -112,11 +124,11 @@ Route Metrics:
 - Impassable Hazard Avoidances: {stats.get('hazards_avoided', 0)}
 """
 
-    # Attempt fast Gemini API call with 2.0s maximum hard wait time
+    # Attempt fast Gemini API call with 15.0s maximum hard wait time
     try:
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         future = executor.submit(_call_gemini_fast, prompt, key)
-        result = future.result(timeout=2.0)
+        result = future.result(timeout=15.0)
         executor.shutdown(wait=False)
         if result:
             return result

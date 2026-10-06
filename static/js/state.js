@@ -83,7 +83,7 @@ export function popSelectedStartPreset() {
  */
 export function getStoredApiKey() {
   try {
-    return localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
+    return sessionStorage.getItem(STORAGE_KEYS.API_KEY) || '';
   } catch (e) {
     return '';
   }
@@ -92,11 +92,11 @@ export function getStoredApiKey() {
 export function setStoredApiKey(key) {
   try {
     if (key) {
-      localStorage.setItem(STORAGE_KEYS.API_KEY, key.trim());
+      sessionStorage.setItem(STORAGE_KEYS.API_KEY, key.trim());
     } else {
-      localStorage.removeItem(STORAGE_KEYS.API_KEY);
+      sessionStorage.removeItem(STORAGE_KEYS.API_KEY);
     }
   } catch (e) {
-    console.warn("Error updating API key:", e);
+    console.warn("Error updating API key in sessionStorage:", e);
   }
 }

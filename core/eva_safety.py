@@ -2,17 +2,10 @@ import math
 import numpy as np
 from typing import Tuple, Dict, List, Optional
 
-MARS_RADIUS_M = 3389500.0
-PLSS_O2_CAPACITY_LITERS = 840.0  # Standard xEMU nominal O2 tank capacity (8h)
-PLSS_MAX_DURATION_HOURS = 8.0     # Maximum suit PLSS mission operational limit
-PLSS_SAFETY_MARGIN_FACTOR = 1.20  # 1.2x PLSS safety buffer factor
-O2_DENSITY_KG_PER_L = 0.001429    # Oxygen density at STP (kg/L)
-
-DEFAULT_RELAY_STATIONS = [
-    {"name": "Perseverance Rover Relay", "lat": 18.4447, "lon": 77.4508, "height_m": 2.5, "range_m": 6000.0},
-    {"name": "Ingenuity Airfield Relay", "lat": 18.4480, "lon": 77.4450, "height_m": 1.5, "range_m": 3500.0},
-    {"name": "Jezero Rim Tower Relay", "lat": 18.4720, "lon": 77.3850, "height_m": 15.0, "range_m": 18000.0}
-]
+from core.config import (
+    MARS_RADIUS_M, PLSS_O2_CAPACITY_LITERS, PLSS_MAX_DURATION_HOURS,
+    PLSS_SAFETY_MARGIN_FACTOR, O2_DENSITY_KG_PER_L, DEFAULT_RELAY_STATIONS
+)
 
 class EVASafetyAnalyzer:
     """

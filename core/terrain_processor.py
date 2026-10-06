@@ -5,8 +5,9 @@ import rasterio
 from rasterio.transform import from_origin
 from typing import Tuple, Dict, Optional, List
 
+from core.config import MARS_RADIUS_M
+
 DEFAULT_DEM_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "jezero_dem_downsampled.tif")
-MARS_RADIUS_M = 3389500.0  # IAU Mars mean radius in meters
 
 class DEMProcessor:
     """
@@ -17,11 +18,23 @@ class DEMProcessor:
     
     def __init__(self, dem_path: str = DEFAULT_DEM_PATH):
         self.dem_path = dem_path
+        self.is_synthetic = False
         if not os.path.exists(self.dem_path):
             self.generate_synthetic_jezero_dem()
         
         self.dataset = rasterio.open(self.dem_path)
         self.elevation_grid = self.dataset.read(1).astype(np.float32)
+        
+        # Validate NoData & NaN values at load
+        if self.dataset.nodatavals and self.dataset.nodatavals[0] is not None:
+            nodata_val = self.dataset.nodatavals[0]
+            self.elevation_grid[self.elevation_grid == nodata_val] = np.nan
+        
+        nan_mask = np.isnan(self.elevation_grid) | np.isinf(self.elevation_grid)
+        if np.any(nan_mask):
+            valid_mean = float(np.nanmean(self.elevation_grid)) if not np.all(nan_mask) else -2550.0
+            self.elevation_grid[nan_mask] = valid_mean
+
         self.transform = self.dataset.transform
         self.bounds = self.dataset.bounds
         self.crs = self.dataset.crs
@@ -150,6 +163,7 @@ class DEMProcessor:
         with realistic crater rims, delta channel deposits, and terrain noise, 
         saved as a GeoTIFF if no dataset exists.
         """
+        self.is_synthetic = True
         os.makedirs(os.path.dirname(self.dem_path), exist_ok=True)
         
         # Grid parameters: 350x350 pixels covering Jezero Crater region
