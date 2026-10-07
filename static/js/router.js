@@ -7,6 +7,7 @@ const ROUTES = {
   '/': { title: 'Martian Route & EVA Planner — Jezero Crater Traversal Engine', viewId: 'view-home' },
   '/home': { title: 'Martian Route & EVA Planner — Jezero Crater Traversal Engine', viewId: 'view-home' },
   '/planner': { title: 'EVA Mission Planner — Jezero Crater | Martian Route', viewId: 'view-planner' },
+  '/route-analysis': { title: 'Route Analysis & Heuristics | Martian Route', viewId: 'view-route-analysis' },
   '/how-it-works': { title: 'How It Works — Terrain Models & Cost Functions | Martian Route', viewId: 'view-how-it-works' },
   '/mission-sites': { title: 'Mission Sites & Waypoints — Jezero Crater | Martian Route', viewId: 'view-mission-sites' },
   '/about': { title: 'About the Project & Team | Martian Route & EVA Planner', viewId: 'view-about' },

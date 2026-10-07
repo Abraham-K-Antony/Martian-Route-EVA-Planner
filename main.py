@@ -119,6 +119,7 @@ class BriefingRequest(BaseModel):
 
 @app.api_route("/", methods=["GET", "HEAD"])
 @app.get("/planner")
+@app.get("/route-analysis")
 @app.get("/how-it-works")
 @app.get("/mission-sites")
 @app.get("/about")
