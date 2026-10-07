@@ -26,22 +26,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize Design System & Theme Persistence
   initTheme();
 
-  // 2. Initialize Clean SPA Router
-  initRouter();
-
-  // 3. Register Page Navigated Event Listener
+  // 2. Register Page Navigated Event Listener BEFORE Router initialization
   window.addEventListener('pageNavigated', (e) => {
     const { path, viewId } = e.detail;
     handlePageViewActivation(path, viewId);
   });
 
-  // 4. Initial Page Activation based on current URL
-  handlePageViewActivation(window.location.pathname, 'view-home');
+  // 3. Initialize Clean SPA Router (triggers initial resolveRoute and dispatches pageNavigated)
+  initRouter();
 
-  // 5. Initialize Smooth Fade-Up on Scroll
+  // 4. Initialize Smooth Fade-Up on Scroll
   initScrollReveal();
 
-  // 6. Check Mission Server Health & Warm Up Free-Tier Backend
+  // 5. Check Mission Server Health & Warm Up Free-Tier Backend
   checkServerHealth();
 });
 
@@ -62,16 +59,18 @@ function initScrollReveal() {
 }
 
 function handlePageViewActivation(path, viewId) {
-  if (path === '/' || path === '/home' || viewId === 'view-home') {
-    initHomePage();
-  } else if (path === '/planner' || viewId === 'view-planner') {
+  const targetPath = path || window.location.pathname;
+
+  if (targetPath === '/planner' || viewId === 'view-planner') {
     activatePlannerView();
-  } else if (path === '/mission-sites' || viewId === 'view-mission-sites') {
+  } else if (targetPath === '/mission-sites' || viewId === 'view-mission-sites') {
     initMissionSitesPage();
-  } else if (path === '/about' || viewId === 'view-about') {
+  } else if (targetPath === '/about' || viewId === 'view-about') {
     initAboutPage();
-  } else if (path === '/contact' || viewId === 'view-contact') {
+  } else if (targetPath === '/contact' || viewId === 'view-contact') {
     initContactPage();
+  } else {
+    initHomePage();
   }
   setTimeout(initScrollReveal, 100);
 }
