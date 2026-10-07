@@ -1083,25 +1083,732 @@
     </section>
 
     <!-- ================================================================= -->
-    <!-- VIEW 4: HOW IT WORKS                                              -->
+    <!-- VIEW 4: HOW IT WORKS (Cinematic Scientific Telemetry & Lab)        -->
     <!-- ================================================================= -->
-    <section id="view-how-it-works" class="page-view flex-1 flex flex-col hidden w-full px-margin py-space-xl">
-      <div class="max-w-4xl mx-auto flex flex-col gap-space-lg text-on-surface">
-        <h1 class="font-headline-xl text-headline-xl font-bold">How It Works — Terrain Models &amp; Cost Functions</h1>
-        <p class="text-on-surface-variant leading-relaxed">
-          The Martian Route &amp; EVA Planner models human metabolic expenditure across planetary terrain using calibrated bioenergetic equations and high-resolution NASA laser altimetry data.
-        </p>
-
-        <div class="p-space-md rounded-xl bg-surface-container/70 border border-white/10 space-y-3 font-mono text-xs">
-          <div class="text-primary font-bold">Minetti Bioenergetics Equation (Mars Calibrated):</div>
-          <div class="p-3 rounded bg-surface-container-lowest text-secondary">
-            C_w(i) = 280.5·i⁵ - 58.7·i⁴ - 289.8·i³ + 74.7·i² + 19.1·i + 3.28 [J/(kg·m)]
+    <section id="view-how-it-works" class="page-view flex-1 flex flex-col hidden w-full">
+      
+      <!-- 1. CINEMATIC SCIENTIFIC HERO & TELEMETRY HUD -->
+      <section class="relative w-full overflow-hidden bg-surface-container-lowest px-margin-desktop py-space-xl">
+        <div class="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px]"></div>
+        <div class="absolute -top-40 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="relative max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-wrap items-center justify-between gap-space-sm pb-space-sm">
+            <div class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm uppercase tracking-wide">
+              <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+              <span>Autonomous Planetary EVA Engine • NASA Space Apps Challenge</span>
+            </div>
+            <div class="flex items-center gap-space-xs font-code-sm text-code-sm text-outline">
+              <span class="text-secondary font-semibold">● MTC 14:00</span>
+              <span>• SOL 1042</span>
+              <span>• DSN LINK 100% NOMINAL</span>
+            </div>
           </div>
-          <p class="text-on-surface-variant text-[11px]">
-            Where <span class="text-on-surface font-bold">i = tan(θ)</span> is the terrain gradient slope and gravity scaling factor is set to <span class="text-primary font-bold font-mono">0.378g</span>.
-          </p>
+
+          <div class="flex flex-col gap-space-sm max-w-4xl">
+            <h1 class="font-headline-xl text-headline-xl uppercase tracking-tight text-on-surface">
+              How We Navigate <span class="text-primary underline decoration-primary-container decoration-2 underline-offset-8">Mars.</span>
+            </h1>
+            <p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl leading-relaxed">
+              From 38.4m orbital terrain elevation grids to non-linear Minetti metabolic bioenergetics, every extravehicular route across Jezero Crater is synthesized directly against the physical constraints of Mars.
+            </p>
+          </div>
+
+          <!-- Mission Status HUD Strip -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-space-xs p-space-xs bg-surface-container-low rounded-lg font-code-sm text-code-sm">
+            <div class="flex flex-col p-space-xs bg-surface-container rounded">
+              <span class="text-outline text-[10px]">MISSION</span>
+              <span class="text-on-surface font-semibold truncate">JEZERO-01</span>
+            </div>
+            <div class="flex flex-col p-space-xs bg-surface-container rounded">
+              <span class="text-outline text-[10px]">COORDINATES</span>
+              <span class="text-on-surface font-semibold truncate">18.38°N, 77.58°E</span>
+            </div>
+            <div class="flex flex-col p-space-xs bg-surface-container rounded">
+              <span class="text-outline text-[10px]">TRAVERSAL ENGINE</span>
+              <span class="text-primary font-semibold truncate">EVA BIO-A* 2.0</span>
+            </div>
+            <div class="flex flex-col p-space-xs bg-surface-container rounded">
+              <span class="text-outline text-[10px]">DEM ELEVATION</span>
+              <span class="text-on-surface font-semibold truncate">38.4 m MOLA/HRSC</span>
+            </div>
+            <div class="flex flex-col p-space-xs bg-surface-container rounded">
+              <span class="text-outline text-[10px]">SURFACE GRAVITY</span>
+              <span class="text-on-surface font-semibold truncate">0.378 g (3.71 m/s²)</span>
+            </div>
+            <div class="flex flex-col p-space-xs bg-surface-container rounded">
+              <span class="text-outline text-[10px]">OPERATIONAL STATE</span>
+              <span class="text-secondary font-semibold truncate flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> GO FOR EVA
+              </span>
+            </div>
+          </div>
+
+          <!-- Hero Metrics Deck -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+            <div class="flex flex-col justify-between p-space-md bg-surface-container rounded-lg shadow-sm hover:bg-surface-container-high transition-all">
+              <div class="flex items-center justify-between">
+                <span class="font-label-sm text-label-sm uppercase text-outline">DEM Resolution</span>
+                <span class="material-symbols-outlined text-primary text-[18px]">grid_4x4</span>
+              </div>
+              <div class="my-space-sm">
+                <span class="font-label-lg text-[32px] leading-none text-on-surface font-bold font-code-sm">38.4</span>
+                <span class="font-code-sm text-code-sm text-primary ml-1 font-semibold">m/px</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">IAU Mars volumetric radius (3,389,500 m) metric grid spacing.</p>
+            </div>
+            <div class="flex flex-col justify-between p-space-md bg-surface-container rounded-lg shadow-sm hover:bg-surface-container-high transition-all">
+              <div class="flex items-center justify-between">
+                <span class="font-label-sm text-label-sm uppercase text-outline">Traversal Engines</span>
+                <span class="material-symbols-outlined text-tertiary text-[18px]">alt_route</span>
+              </div>
+              <div class="my-space-sm">
+                <span class="font-label-lg text-[32px] leading-none text-on-surface font-bold font-code-sm">5</span>
+                <span class="font-code-sm text-code-sm text-tertiary ml-1 font-semibold">Models</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Minetti, Tobler Speed, Safest Barrier, 3D RF LoS, and Legacy.</p>
+            </div>
+            <div class="flex flex-col justify-between p-space-md bg-surface-container rounded-lg shadow-sm hover:bg-surface-container-high transition-all">
+              <div class="flex items-center justify-between">
+                <span class="font-label-sm text-label-sm uppercase text-outline">xEMU O₂ Capacity</span>
+                <span class="material-symbols-outlined text-secondary text-[18px]">vital_signs</span>
+              </div>
+              <div class="my-space-sm">
+                <span class="font-label-lg text-[32px] leading-none text-on-surface font-bold font-code-sm">840</span>
+                <span class="font-code-sm text-code-sm text-secondary ml-1 font-semibold">L</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">High-pressure primary loop calibrated for 220 kg combined mass.</p>
+            </div>
+            <div class="flex flex-col justify-between p-space-md bg-surface-container rounded-lg shadow-sm hover:bg-surface-container-high transition-all">
+              <div class="flex items-center justify-between">
+                <span class="font-label-sm text-label-sm uppercase text-outline">RF Visibility</span>
+                <span class="material-symbols-outlined text-primary-container text-[18px]">cell_tower</span>
+              </div>
+              <div class="my-space-sm">
+                <span class="font-label-lg text-[32px] leading-none text-on-surface font-bold font-code-sm">100%</span>
+                <span class="font-code-sm text-code-sm text-primary-container ml-1 font-semibold">LoS RF</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Ray-cast occlusions verified against Perseverance and Rim relays.</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-space-sm pt-space-xs">
+            <a href="#pipeline" class="flex items-center gap-space-xs px-space-md py-space-sm bg-primary-container hover:bg-primary text-on-primary-container hover:text-on-primary font-label-md text-label-md rounded transition-colors shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">explore</span>
+              <span>EXPLORE THE ENGINE</span>
+            </a>
+            <a href="/planner" data-nav class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-high hover:bg-surface-container-highest text-primary font-label-md text-label-md rounded transition-colors shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+              <span>LAUNCH MISSION PLANNER</span>
+            </a>
+            <button type="button" class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-label-md text-label-md rounded transition-colors" onclick="document.getElementById('engine-chat-modal').classList.remove('hidden')">
+              <span class="material-symbols-outlined text-[18px]">psychology</span>
+              <span>AI SAFETY DISPATCH</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- 2. INTERACTIVE 6-STAGE MISSION PIPELINE -->
+      <section id="pipeline" class="w-full px-margin-desktop py-space-xl bg-surface">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col gap-space-xs">
+            <div class="flex items-center gap-space-xs text-primary font-code-sm text-code-sm uppercase tracking-wider">
+              <span class="material-symbols-outlined text-[16px]">account_tree</span>
+              <span>Avionics Compute Cycle</span>
+            </div>
+            <h2 class="font-headline-lg text-headline-lg uppercase tracking-tight text-on-surface">The 6-Stage Traversal Pipeline</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+              Each Jezero mission executes an end-to-end mathematical translation from raw orbital GeoTIFF rasters into physiological astronaut life-support constraints.
+            </p>
+          </div>
+
+          <div id="pipeline-stepper" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-space-xs bg-surface-container-lowest p-space-xs rounded-lg">
+            <button type="button" id="step-btn-1" onclick="switchPipelineStage(1)" class="pipeline-tab active text-left p-space-sm rounded bg-surface-container-high transition-all flex flex-col gap-1">
+              <span class="font-code-sm text-code-sm text-primary font-semibold">STAGE 01</span>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Terrain Data</span>
+              <span class="font-body-sm text-body-sm text-outline">38.4m DEM Raster</span>
+            </button>
+            <button type="button" id="step-btn-2" onclick="switchPipelineStage(2)" class="pipeline-tab text-left p-space-sm rounded hover:bg-surface-container transition-all flex flex-col gap-1">
+              <span class="font-code-sm text-code-sm text-outline font-semibold">STAGE 02</span>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Analysis</span>
+              <span class="font-body-sm text-body-sm text-outline">Gradient dz/dx &amp; Aspect</span>
+            </button>
+            <button type="button" id="step-btn-3" onclick="switchPipelineStage(3)" class="pipeline-tab text-left p-space-sm rounded hover:bg-surface-container transition-all flex flex-col gap-1">
+              <span class="font-code-sm text-code-sm text-outline font-semibold">STAGE 03</span>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Physics Model</span>
+              <span class="font-body-sm text-body-sm text-outline">0.378g Minetti Math</span>
+            </button>
+            <button type="button" id="step-btn-4" onclick="switchPipelineStage(4)" class="pipeline-tab text-left p-space-sm rounded hover:bg-surface-container transition-all flex flex-col gap-1">
+              <span class="font-code-sm text-code-sm text-outline font-semibold">STAGE 04</span>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Route Engine</span>
+              <span class="font-body-sm text-body-sm text-outline">A* Heuristic Graph</span>
+            </button>
+            <button type="button" id="step-btn-5" onclick="switchPipelineStage(5)" class="pipeline-tab text-left p-space-sm rounded hover:bg-surface-container transition-all flex flex-col gap-1">
+              <span class="font-code-sm text-code-sm text-outline font-semibold">STAGE 05</span>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">Telemetry</span>
+              <span class="font-body-sm text-body-sm text-outline">Joules, O₂ &amp; PoNR</span>
+            </button>
+            <button type="button" id="step-btn-6" onclick="switchPipelineStage(6)" class="pipeline-tab text-left p-space-sm rounded hover:bg-surface-container transition-all flex flex-col gap-1">
+              <span class="font-code-sm text-code-sm text-outline font-semibold">STAGE 06</span>
+              <span class="font-label-md text-label-md text-on-surface font-semibold">GO / NO-GO</span>
+              <span class="font-body-sm text-body-sm text-outline">Safety Envelope</span>
+            </button>
+          </div>
+
+          <div id="pipeline-details" class="p-space-lg bg-surface-container rounded-lg shadow-sm">
+            <div class="flex flex-col lg:flex-row justify-between gap-space-lg items-start">
+              <div class="flex flex-col gap-space-xs max-w-2xl">
+                <div class="flex items-center gap-space-sm">
+                  <span id="detail-tag" class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary-container font-code-sm text-code-sm font-semibold">STAGE 01: TERRAIN DATA</span>
+                  <span id="detail-sub" class="text-secondary font-code-sm text-code-sm">INGESTION COMPLETE</span>
+                </div>
+                <h3 id="detail-title" class="font-headline-md text-headline-md text-on-surface uppercase">NASA MOLA &amp; HRSC Elevation Ingestion</h3>
+                <p id="detail-desc" class="font-body-md text-body-md text-on-surface-variant">
+                  The engine imports 38.4m/pixel Digital Elevation Models (DEM) from Mars Express HRSC and Mars Global Surveyor MOLA merged datasets. Geometries are mapped using IAU standard planetary volumetric sphere of 3,389,500m radius rather than Earth's WGS84 ellipsoid.
+                </p>
+                <div class="p-space-sm bg-surface-container-low rounded font-code-sm text-code-sm text-primary max-w-xl overflow-x-auto">
+                  <span class="text-outline">Resolution Formula:</span><br>
+                  dy = Δlat · (π/180) · 3,389,500 m<br>
+                  dx = Δlon · (π/180) · 3,389,500 m · cos(lat_center)
+                </div>
+              </div>
+              <div class="w-full lg:w-96 flex flex-col gap-space-xs p-space-md bg-surface-container-low rounded font-code-sm text-code-sm">
+                <span class="text-outline uppercase text-[10px]">AVIONICS REGISTER VALUES</span>
+                <div class="flex justify-between py-1 border-b border-surface-container-high">
+                  <span class="text-on-surface-variant">Grid Dimensions:</span>
+                  <span id="reg-dim" class="text-on-surface font-semibold">512 × 512 cells</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-surface-container-high">
+                  <span class="text-on-surface-variant">Spatial Bound:</span>
+                  <span id="reg-bound" class="text-on-surface font-semibold">Jezero Floor to Delta</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-surface-container-high">
+                  <span class="text-on-surface-variant">Elev Min / Max:</span>
+                  <span id="reg-elev" class="text-on-surface font-semibold">-2,580 m / -2,490 m</span>
+                </div>
+                <div class="flex justify-between py-1">
+                  <span class="text-on-surface-variant">Vector Precision:</span>
+                  <span id="reg-prec" class="text-secondary font-semibold">float32 (Rasterio)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. TERRAIN BECOMES A MISSION PREVIEW -->
+      <section id="terrain" class="w-full px-margin-desktop py-space-xl bg-surface-container-lowest">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+            <div>
+              <span class="font-code-sm text-code-sm text-primary uppercase tracking-wide">Topographic Engine Preview</span>
+              <h2 class="font-headline-lg text-headline-lg uppercase text-on-surface mt-1">The Terrain Becomes A Mission</h2>
+              <p class="font-body-md text-body-md text-on-surface-variant max-w-xl">
+                Simulated Jezero Crater traverse from Octavia E. Butler touchdown to the Neretva Delta fan scarp.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-space-xs p-space-xs bg-surface-container rounded-lg">
+              <button type="button" id="btn-layer-elevation" onclick="toggleMapLayer('elevation')" class="px-space-sm py-1 rounded bg-primary-container text-on-primary-container font-code-sm text-code-sm font-semibold transition-all">ELEVATION</button>
+              <button type="button" id="btn-layer-slope" onclick="toggleMapLayer('slope')" class="px-space-sm py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm hover:text-primary transition-all">SLOPE</button>
+              <button type="button" id="btn-layer-energy" onclick="toggleMapLayer('energy')" class="px-space-sm py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm hover:text-primary transition-all">ENERGY COST</button>
+              <button type="button" id="btn-layer-comms" onclick="toggleMapLayer('comms')" class="px-space-sm py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm hover:text-primary transition-all">3D RF LoS</button>
+              <button type="button" id="btn-layer-hazards" onclick="toggleMapLayer('hazards')" class="px-space-sm py-1 rounded bg-surface-container-high text-on-surface font-code-sm text-code-sm hover:text-primary transition-all">HAZARDS</button>
+            </div>
+          </div>
+
+          <div class="relative w-full rounded-xl bg-surface-container-low overflow-hidden shadow-lg p-space-md flex flex-col gap-space-md">
+            <div class="relative w-full h-[400px] sm:h-[480px] bg-surface-container-lowest rounded-lg overflow-hidden flex items-center justify-center">
+              <div class="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-surface-bright via-surface-container to-surface-container-lowest"></div>
+              
+              <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 500" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 0,200 Q 250,160 500,230 T 1000,190" stroke="#262a32" stroke-width="1.5" stroke-dasharray="4,4" fill="none"></path>
+                <path d="M 0,260 Q 280,210 520,300 T 1000,240" stroke="#262a32" stroke-width="1.5" fill="none"></path>
+                <path d="M 0,320 Q 300,280 600,370 T 1000,310" stroke="#31353d" stroke-width="1.5" fill="none"></path>
+                <polygon id="hazard-layer" points="360,190 440,160 480,240 400,270" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" stroke-width="1" class="transition-opacity duration-300"></polygon>
+                <polygon id="glare-layer" points="620,120 720,90 770,180 670,210" fill="rgba(245, 158, 11, 0.12)" stroke="#f59e0b" stroke-width="1" class="transition-opacity duration-300"></polygon>
+                <line id="comms-ray-1" x1="220" y1="130" x2="520" y2="280" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6"></line>
+                <line id="comms-ray-2" x1="880" y1="80" x2="520" y2="280" stroke="#38bdf8" stroke-width="1" stroke-dasharray="6,3" opacity="0.4"></line>
+                <path id="route-path" d="M 120,380 L 280,350 L 460,310 L 620,240 L 760,190 L 880,170" stroke="url(#slope-grad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                <defs>
+                  <linearGradient id="slope-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#4edea3"></stop>
+                    <stop offset="40%" stop-color="#4edea3"></stop>
+                    <stop offset="70%" stop-color="#f59e0b"></stop>
+                    <stop offset="100%" stop-color="#4edea3"></stop>
+                  </linearGradient>
+                </defs>
+                <g transform="translate(120, 380)">
+                  <circle r="12" fill="#4edea3" opacity="0.2"></circle>
+                  <circle r="6" fill="#4edea3"></circle>
+                  <text x="14" y="4" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#dfe2ec">S: Octavia Butler (-2,570m)</text>
+                </g>
+                <g transform="translate(520, 280)">
+                  <circle r="8" fill="#38bdf8" opacity="0.3" class="animate-ping"></circle>
+                  <circle r="5" fill="#38bdf8"></circle>
+                  <text x="10" y="-8" font-family="JetBrains Mono" font-size="10" fill="#8ed5ff">EVA SQUADRON (SOL 1042)</text>
+                </g>
+                <g transform="translate(880, 170)">
+                  <circle r="12" fill="#ffb4ab" opacity="0.2"></circle>
+                  <circle r="6" fill="#ffb4ab"></circle>
+                  <text x="-160" y="-12" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="#dfe2ec">D: Neretva Delta (-2,520m)</text>
+                </g>
+              </svg>
+              <div class="absolute bottom-3 left-3 bg-surface-container-lowest/90 px-space-sm py-1 rounded font-code-sm text-code-sm flex items-center gap-space-sm">
+                <span class="text-outline">SLOPE KEY:</span>
+                <span class="text-secondary flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary"></span> &lt;8° Safe</span>
+                <span class="text-tertiary flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-tertiary"></span> 8–15° Caution</span>
+                <span class="text-error flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-error"></span> &gt;15° Hard Wall</span>
+              </div>
+              <div class="absolute top-3 right-3 bg-surface-container-lowest/90 px-space-sm py-1 rounded font-code-sm text-code-sm text-primary">
+                ACTIVE VIEW: <span id="map-active-layer-name">ELEVATION GRADIENT</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-space-xs pt-space-xs font-code-sm text-code-sm">
+              <div class="p-space-xs bg-surface-container rounded flex flex-col">
+                <span class="text-outline text-[10px]">DISTANCE</span>
+                <span class="text-on-surface font-bold text-[14px]">2.84 km</span>
+              </div>
+              <div class="p-space-xs bg-surface-container rounded flex flex-col">
+                <span class="text-outline text-[10px]">EST. DURATION</span>
+                <span class="text-on-surface font-bold text-[14px]">47 min</span>
+              </div>
+              <div class="p-space-xs bg-surface-container rounded flex flex-col">
+                <span class="text-outline text-[10px]">MINETTI ENERGY</span>
+                <span class="text-primary font-bold text-[14px]">842 kcal</span>
+              </div>
+              <div class="p-space-xs bg-surface-container rounded flex flex-col">
+                <span class="text-outline text-[10px]">MAX SLOPE</span>
+                <span class="text-tertiary font-bold text-[14px]">8.7°</span>
+              </div>
+              <div class="p-space-xs bg-surface-container rounded flex flex-col col-span-2 sm:col-span-1">
+                <span class="text-outline text-[10px]">RF LINE-OF-SIGHT</span>
+                <span class="text-secondary font-bold text-[14px]">100% COVERAGE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. WHY WALKING ON MARS IS DIFFICULT -->
+      <section id="physics" class="w-full px-margin-desktop py-space-xl bg-surface">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col gap-space-xs">
+            <span class="font-code-sm text-code-sm text-tertiary uppercase tracking-wider">Physical Realities &amp; Planetary Biomechanics</span>
+            <h2 class="font-headline-lg text-headline-lg uppercase text-on-surface">Why Walking on Mars Is Difficult</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+              Earth-bound intuitions fail on Mars. Low gravity does not mean low effort: pressurized spacesuits induce massive joint resistance while loose volcanic scree collapses under lateral shear stress.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+            <div class="p-space-md bg-surface-container rounded-lg flex flex-col justify-between">
+              <div class="flex justify-between items-center text-outline font-label-sm text-label-sm uppercase">
+                <span>Mars Gravity</span>
+                <span class="material-symbols-outlined text-primary text-[18px]">south</span>
+              </div>
+              <div class="my-space-sm">
+                <div class="font-code-sm text-[30px] font-bold text-on-surface">3.71 <span class="text-primary text-[16px]">m/s²</span></div>
+                <span class="font-code-sm text-code-sm text-outline">0.378 × Terrestrial Standard</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Ground reaction forces shrink, reducing foot traction across basalt regolith.</p>
+            </div>
+            <div class="p-space-md bg-surface-container rounded-lg flex flex-col justify-between">
+              <div class="flex justify-between items-center text-outline font-label-sm text-label-sm uppercase">
+                <span>Total EVA Mass</span>
+                <span class="material-symbols-outlined text-tertiary text-[18px]">scale</span>
+              </div>
+              <div class="my-space-sm">
+                <div class="font-code-sm text-[30px] font-bold text-on-surface">220 <span class="text-tertiary text-[16px]">kg</span></div>
+                <span class="font-code-sm text-code-sm text-outline">80 kg Crew + 140 kg NASA xEMU</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Inertia is 100% unchanged. Deceleration and turn momentum remain terrestrial.</p>
+            </div>
+            <div class="p-space-md bg-surface-container rounded-lg flex flex-col justify-between">
+              <div class="flex justify-between items-center text-outline font-label-sm text-label-sm uppercase">
+                <span>Suit Rigidity Multiplier</span>
+                <span class="material-symbols-outlined text-secondary text-[18px]">accessibility_new</span>
+              </div>
+              <div class="my-space-sm">
+                <div class="font-code-sm text-[30px] font-bold text-on-surface">1.35<span class="text-secondary text-[16px]">×</span></div>
+                <span class="font-code-sm text-code-sm text-outline">4.3 psi Internal Pressure Factor</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Every flexion of knee and hip works against pressurized mechanical suit envelope.</p>
+            </div>
+            <div class="p-space-md bg-surface-container rounded-lg flex flex-col justify-between">
+              <div class="flex justify-between items-center text-outline font-label-sm text-label-sm uppercase">
+                <span>Regolith Floor Cost</span>
+                <span class="material-symbols-outlined text-primary-container text-[18px]">trending_up</span>
+              </div>
+              <div class="my-space-sm">
+                <div class="font-code-sm text-[30px] font-bold text-on-surface">150 <span class="text-primary-container text-[16px]">J/m</span></div>
+                <span class="font-code-sm text-code-sm text-outline">Loose Ejecta Metabolic Minimum</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Flat surfaces still require substantial baseline burn due to fine sand sinkage.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. METABOLIC ENERGY MODEL LABORATORY -->
+      <section id="minetti-lab" class="w-full px-margin-desktop py-space-xl bg-surface-container-lowest">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-space-md">
+            <div>
+              <span class="font-code-sm text-code-sm text-primary uppercase tracking-wider">Bioenergetics Core</span>
+              <h2 class="font-headline-lg text-headline-lg uppercase text-on-surface mt-1">Interactive Minetti Energy Model</h2>
+              <p class="font-body-md text-body-md text-on-surface-variant max-w-xl">
+                Calculates human metabolic joules per meter based on Alberto Minetti’s 5th-order polynomial adapted for extraterrestrial gravity and space suits.
+              </p>
+            </div>
+            <div class="flex items-center gap-space-xs p-1 bg-surface-container rounded-lg">
+              <button type="button" id="mode-eng-btn" onclick="setExplMode('eng')" class="px-space-sm py-1 rounded bg-primary-container text-on-primary-container font-code-sm text-code-sm font-semibold">ENGINEER MODE</button>
+              <button type="button" id="mode-stu-btn" onclick="setExplMode('stu')" class="px-space-sm py-1 rounded text-on-surface font-code-sm text-code-sm hover:text-primary">STUDENT ANALOGY</button>
+            </div>
+          </div>
+
+          <div class="p-space-md bg-surface-container rounded-xl flex flex-col gap-space-sm shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="font-label-sm text-label-sm uppercase text-outline">Governing Bioenergetics Formula</span>
+              <span class="font-code-sm text-code-sm text-secondary">C_min = 150 J/m floor</span>
+            </div>
+            <div class="p-space-md bg-surface-container-low rounded-lg font-code-sm text-sm sm:text-base text-primary overflow-x-auto leading-relaxed">
+              C(i) = M_total · (280.5i⁵ - 58.7i⁴ - 76.8i³ + 26.8i² + 19.6i + 2.5) · (g_mars / g_earth) · 1.35
+            </div>
+            <div id="mode-text-container" class="font-body-sm text-body-sm text-on-surface-variant">
+              <span class="text-on-surface font-semibold">Engineer Analysis:</span> Where i = tan(θ) represents the dimensional slope grade. The derivative reveals minimum energy expenditure occurs not on level ground, but at i ≈ -0.10 (-5.7° gentle slope), where gravitational potential energy passively assists locomotion before braking effort increases.
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+            <div class="lg:col-span-5 p-space-md bg-surface-container rounded-xl flex flex-col gap-space-md">
+              <span class="font-label-md text-label-md uppercase font-semibold text-on-surface">Real-Time Parameter Inputs</span>
+              
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between font-code-sm text-code-sm">
+                  <span class="text-outline">Terrain Slope Angle (θ)</span>
+                  <span id="val-slope" class="text-primary font-bold">5.0°</span>
+                </div>
+                <input type="range" id="input-slope" min="-20" max="25" step="0.5" value="5" oninput="calculateMinetti()" class="w-full accent-primary bg-surface-container-highest rounded h-2">
+                <div class="flex justify-between text-[10px] text-outline font-code-sm">
+                  <span>-20° (Braking)</span>
+                  <span>0° (Level)</span>
+                  <span>+25° (Steep)</span>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between font-code-sm text-code-sm">
+                  <span class="text-outline">Combined Mass (M_total)</span>
+                  <span id="val-mass" class="text-tertiary font-bold">220 kg</span>
+                </div>
+                <input type="range" id="input-mass" min="160" max="260" step="5" value="220" oninput="calculateMinetti()" class="w-full accent-tertiary bg-surface-container-highest rounded h-2">
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between font-code-sm text-code-sm">
+                  <span class="text-outline">Suit Rigidity Factor</span>
+                  <span id="val-rigidity" class="text-secondary font-bold">1.35×</span>
+                </div>
+                <input type="range" id="input-rigidity" min="1.0" max="1.6" step="0.05" value="1.35" oninput="calculateMinetti()" class="w-full accent-secondary bg-surface-container-highest rounded h-2">
+              </div>
+            </div>
+
+            <div class="lg:col-span-7 p-space-md bg-surface-container rounded-xl flex flex-col justify-between gap-space-md">
+              <div>
+                <span class="font-label-md text-label-md uppercase font-semibold text-on-surface">Computed Physiological Output</span>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm my-space-md">
+                  <div class="p-space-sm bg-surface-container-low rounded">
+                    <span class="text-outline font-code-sm text-[10px]">UNIT ENERGY</span>
+                    <div id="out-jm" class="font-code-sm text-headline-sm text-primary font-bold mt-1">297 J/m</div>
+                  </div>
+                  <div class="p-space-sm bg-surface-container-low rounded">
+                    <span class="text-outline font-code-sm text-[10px]">1 KM TRAVERSE</span>
+                    <div id="out-kj" class="font-code-sm text-headline-sm text-on-surface font-bold mt-1">297 kJ</div>
+                  </div>
+                  <div class="p-space-sm bg-surface-container-low rounded">
+                    <span class="text-outline font-code-sm text-[10px]">CALORIC BURN</span>
+                    <div id="out-kcal" class="font-code-sm text-headline-sm text-tertiary font-bold mt-1">71 kcal/km</div>
+                  </div>
+                  <div class="p-space-sm bg-surface-container-low rounded">
+                    <span class="text-outline font-code-sm text-[10px]">O₂ CONSUMPTION</span>
+                    <div id="out-o2" class="font-code-sm text-headline-sm text-secondary font-bold mt-1">1.4 L/km</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="relative w-full h-44 bg-surface-container-low rounded-lg p-space-xs overflow-hidden flex flex-col justify-between">
+                <div class="flex justify-between font-code-sm text-[10px] text-outline">
+                  <span>MINETTI COST CURVE C(i)</span>
+                  <span>INFLECTION POINT: -5.7°</span>
+                </div>
+                <svg class="w-full h-28" viewBox="0 0 400 100" preserveAspectRatio="none">
+                  <line x1="0" y1="80" x2="400" y2="80" stroke="#262a32" stroke-width="1"></line>
+                  <line x1="180" y1="0" x2="180" y2="100" stroke="#262a32" stroke-width="1" stroke-dasharray="2,2"></line>
+                  <path d="M 0,45 Q 120,78 180,82 T 320,30 L 400,5" fill="none" stroke="#38bdf8" stroke-width="2.5"></path>
+                  <circle id="curve-marker" cx="225" cy="65" r="5" fill="#f59e0b"></circle>
+                </svg>
+                <div class="flex justify-between font-code-sm text-[10px] text-outline">
+                  <span>-20° Downhill</span>
+                  <span>0° Level</span>
+                  <span>+25° Ascent</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. 5 MULTI-ROUTE STRATEGIES COMPARED -->
+      <section id="routing" class="w-full px-margin-desktop py-space-xl bg-surface">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col gap-space-xs">
+            <span class="font-code-sm text-code-sm text-primary uppercase tracking-wider">Multi-Heuristic Pathfinding</span>
+            <h2 class="font-headline-lg text-headline-lg uppercase text-on-surface">5 Route Optimization Strategies</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+              No single path suits every Martian operation. Select an engine below to examine algorithmic behavior against terrain scarps and communications lines.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-space-xs bg-surface-container-lowest p-space-xs rounded-lg">
+            <button type="button" id="strat-btn-energy" onclick="selectStrategy('energy')" class="strat-tab active p-space-sm rounded bg-surface-container-high text-left flex flex-col gap-1">
+              <span class="font-label-sm text-label-sm text-primary font-bold">⚡ LOWEST ENERGY</span>
+              <span class="font-body-sm text-body-sm text-outline">Minetti Bioenergetics</span>
+            </button>
+            <button type="button" id="strat-btn-fastest" onclick="selectStrategy('fastest')" class="strat-tab p-space-sm rounded hover:bg-surface-container text-left flex flex-col gap-1">
+              <span class="font-label-sm text-label-sm text-on-surface font-bold">⏱️ FASTEST</span>
+              <span class="font-body-sm text-body-sm text-outline">Tobler Speed Law</span>
+            </button>
+            <button type="button" id="strat-btn-safest" onclick="selectStrategy('safest')" class="strat-tab p-space-sm rounded hover:bg-surface-container text-left flex flex-col gap-1">
+              <span class="font-label-sm text-label-sm text-on-surface font-bold">🛡️ SAFEST</span>
+              <span class="font-body-sm text-body-sm text-outline">&lt;8° Slope Barrier</span>
+            </button>
+            <button type="button" id="strat-btn-comms" onclick="selectStrategy('comms')" class="strat-tab p-space-sm rounded hover:bg-surface-container text-left flex flex-col gap-1">
+              <span class="font-label-sm text-label-sm text-on-surface font-bold">📡 COMMS SAFE</span>
+              <span class="font-body-sm text-body-sm text-outline">3D LoS RF Mesh</span>
+            </button>
+            <button type="button" id="strat-btn-legacy" onclick="selectStrategy('legacy')" class="strat-tab p-space-sm rounded hover:bg-surface-container text-left flex flex-col gap-1">
+              <span class="font-label-sm text-label-sm text-on-surface font-bold">📜 LEGACY</span>
+              <span class="font-body-sm text-body-sm text-outline">k · exp(slope)</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md p-space-md bg-surface-container rounded-xl">
+            <div class="lg:col-span-5 flex flex-col justify-between gap-space-md">
+              <div class="flex flex-col gap-space-sm">
+                <div id="strat-tag" class="inline-flex items-center gap-space-xs px-space-xs py-0.5 rounded bg-primary-container text-on-primary-container font-code-sm text-code-sm w-fit font-semibold">
+                  PRIMARY: MINETTI BIOENERGETICS
+                </div>
+                <h3 id="strat-title" class="font-headline-md text-headline-md text-on-surface">Lowest Metabolic Joules Route</h3>
+                <p id="strat-desc" class="font-body-md text-body-md text-on-surface-variant">
+                  Searches the 38.4m DEM grid for the global energy minimum. Will voluntarily take longer serpentine detours across gentle 3° terrain to bypass steep inclines, minimizing O₂ demand and astronaut fatigue.
+                </p>
+                <div id="strat-formula" class="p-space-sm bg-surface-container-low rounded font-code-sm text-code-sm text-outline">
+                  Objective: argmin ∑ C(i_k) · Δs_k<br>
+                  Best For: Nominal EVA traverses &amp; long-range sample collection.
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-space-xs font-code-sm text-code-sm">
+                <div class="p-space-xs bg-surface-container-low rounded">
+                  <span class="text-outline text-[10px]">DISTANCE</span>
+                  <div id="sim-dist" class="font-bold text-on-surface">2.84 km</div>
+                </div>
+                <div class="p-space-xs bg-surface-container-low rounded">
+                  <span class="text-outline text-[10px]">DURATION</span>
+                  <div id="sim-time" class="font-bold text-on-surface">47 min</div>
+                </div>
+                <div class="p-space-xs bg-surface-container-low rounded">
+                  <span class="text-outline text-[10px]">ENERGY</span>
+                  <div id="sim-cal" class="font-bold text-primary">842 kcal</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-7 bg-surface-container-lowest rounded-lg p-space-md flex flex-col justify-between gap-space-sm">
+              <div class="flex justify-between items-center font-code-sm text-code-sm text-outline">
+                <span>TRAVERSAL RE-SYNTHESIS CANVAS</span>
+                <span class="text-secondary font-semibold">STATUS: NOMINAL PATH</span>
+              </div>
+              <svg class="w-full h-56 rounded bg-surface-container-low/50" viewBox="0 0 600 240">
+                <polygon points="100,240 220,110 340,240" fill="#1c2027" opacity="0.6"></polygon>
+                <polygon points="300,240 450,70 580,240" fill="#1c2027" opacity="0.8"></polygon>
+                <path id="strat-svg-path" d="M 50,190 Q 200,180 320,150 T 550,80" stroke="#4edea3" stroke-width="4" stroke-linecap="round" fill="none"></path>
+                <circle cx="50" cy="190" r="6" fill="#4edea3"></circle>
+                <circle cx="550" cy="80" r="6" fill="#ffb4ab"></circle>
+              </svg>
+              <div class="flex justify-between font-code-sm text-code-sm text-outline">
+                <span>Elevation Delta: +50 m</span>
+                <span>Safety Margin: 99.4%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. 3D COMMS MESH -->
+      <section id="comms" class="w-full px-margin-desktop py-space-xl bg-surface-container-lowest">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-space-md">
+            <div>
+              <span class="font-code-sm text-code-sm text-primary uppercase tracking-wider">Surface Telemetry Link</span>
+              <h2 class="font-headline-lg text-headline-lg uppercase text-on-surface mt-1">Never Lose The Signal</h2>
+              <p class="font-body-md text-body-md text-on-surface-variant max-w-xl">
+                Ray-casting against 38.4m elevation rasters prevents radio silence. Deep crater walls and delta cliffs cast RF dead zones that our pathfinder actively circumnavigates.
+              </p>
+            </div>
+            <button type="button" id="btn-comms-sim" onclick="toggleCommsSim()" class="flex items-center gap-space-xs px-space-md py-space-sm bg-primary-container text-on-primary-container font-label-md text-label-md rounded">
+              <span class="material-symbols-outlined text-[18px]">cell_tower</span>
+              <span>SIMULATE CRATER SHADOW</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+            <div class="lg:col-span-8 p-space-md bg-surface-container rounded-xl flex flex-col gap-space-md">
+              <div class="flex justify-between items-center font-code-sm text-code-sm">
+                <span class="text-outline uppercase">3D RF Ray-Casting Projection</span>
+                <span id="comms-status-label" class="text-primary font-semibold">LINE-OF-SIGHT: 100% SECURE</span>
+              </div>
+              <div class="relative w-full h-64 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
+                <svg class="w-full h-full" viewBox="0 0 600 220">
+                  <path d="M 0,200 L 150,170 Q 240,140 300,190 T 450,120 L 600,200 L 600,220 L 0,220 Z" fill="#1c2027"></path>
+                  <line id="ray-rover" x1="100" y1="145" x2="280" y2="168" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,4"></line>
+                  <polygon id="rf-shadow-cone" points="300,190 400,220 280,220" fill="rgba(239, 68, 68, 0.25)" class="hidden"></polygon>
+                </svg>
+              </div>
+            </div>
+
+            <div class="lg:col-span-4 p-space-md bg-surface-container rounded-xl flex flex-col justify-between gap-space-md">
+              <span class="font-label-md text-label-md uppercase font-semibold text-on-surface">RF Telemetry Indicators</span>
+              <div class="flex flex-col gap-space-sm font-code-sm text-code-sm">
+                <div class="p-space-sm bg-surface-container-low rounded flex justify-between items-center">
+                  <span class="text-outline">Active Relays</span>
+                  <span class="text-on-surface font-bold">2 Relays (Rover + Rim)</span>
+                </div>
+                <div class="p-space-sm bg-surface-container-low rounded flex justify-between items-center">
+                  <span class="text-outline">Total RF Coverage</span>
+                  <span id="comms-cov-val" class="text-secondary font-bold">100.0%</span>
+                </div>
+                <div class="p-space-sm bg-surface-container-low rounded flex justify-between items-center">
+                  <span class="text-outline">Dead Zones Detected</span>
+                  <span id="comms-dead-val" class="text-on-surface font-bold">0 Cells</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. SOLAR GLARE HAZARDS -->
+      <section id="solar-hazards" class="w-full px-margin-desktop py-space-xl bg-surface">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col gap-space-xs">
+            <span class="font-code-sm text-code-sm text-tertiary uppercase tracking-wider">Planetary Heliophysics</span>
+            <h2 class="font-headline-lg text-headline-lg uppercase text-on-surface">Solar Glare &amp; Thermal Shadow Hazards</h2>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+            <div class="lg:col-span-5 p-space-md bg-surface-container rounded-xl flex flex-col justify-between gap-space-md">
+              <div class="flex flex-col gap-space-md">
+                <div class="flex flex-col gap-1">
+                  <div class="flex justify-between font-code-sm text-code-sm">
+                    <span class="text-outline">Sun Azimuth (SW)</span>
+                    <span id="val-sun-az" class="text-tertiary font-bold">225°</span>
+                  </div>
+                  <input type="range" id="input-sun-az" min="0" max="360" value="225" oninput="updateSolarHazards()" class="w-full accent-tertiary bg-surface-container-highest rounded h-2">
+                </div>
+                <div class="flex flex-col gap-1">
+                  <div class="flex justify-between font-code-sm text-code-sm">
+                    <span class="text-outline">Sun Elevation Angle</span>
+                    <span id="val-sun-el" class="text-primary font-bold">45°</span>
+                  </div>
+                  <input type="range" id="input-sun-el" min="10" max="80" value="45" oninput="updateSolarHazards()" class="w-full accent-primary bg-surface-container-highest rounded h-2">
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-7 p-space-md bg-surface-container rounded-xl flex flex-col justify-between gap-space-md">
+              <div class="flex justify-between items-center font-code-sm text-code-sm">
+                <span class="text-outline uppercase">Active Heliophysical Assessment</span>
+                <span id="solar-risk-badge" class="text-secondary font-bold">STATUS: SUNLIT NOMINAL</span>
+              </div>
+              <div class="relative w-full h-48 bg-surface-container-low rounded-lg flex items-center justify-center">
+                <svg class="w-40 h-40" viewBox="0 0 160 160">
+                  <circle cx="80" cy="80" r="70" fill="none" stroke="#262a32" stroke-width="2"></circle>
+                  <line id="sun-vec-line" x1="80" y1="80" x2="30" y2="130" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"></line>
+                  <circle id="sun-dot" cx="30" cy="130" r="6" fill="#f59e0b"></circle>
+                </svg>
+              </div>
+              <div class="grid grid-cols-2 gap-space-sm font-code-sm text-code-sm">
+                <div class="p-space-sm bg-surface-container-low rounded">
+                  <span class="text-outline text-[10px]">GLARE POTENTIAL</span>
+                  <div id="solar-glare-txt" class="font-bold text-tertiary">LOW (Facing NE)</div>
+                </div>
+                <div class="p-space-sm bg-surface-container-low rounded">
+                  <span class="text-outline text-[10px]">THERMAL SHADOW RISK</span>
+                  <div id="solar-shadow-txt" class="font-bold text-secondary">SAFE (&gt; -65°C)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. COLLAPSIBLE SCIENTIFIC SPECIFICATION (01-08) ACCORDIONS -->
+      <section id="specification" class="w-full px-margin-desktop py-space-xl bg-surface-container-lowest">
+        <div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div class="flex flex-col gap-space-xs">
+            <span class="font-code-sm text-code-sm text-outline uppercase tracking-wider">Technical Reference</span>
+            <h2 class="font-headline-lg text-headline-lg uppercase text-on-surface">Scientific Specification (01–08)</h2>
+          </div>
+          <div id="accordion-group" class="flex flex-col gap-space-xs">
+            <!-- Accordion 01 -->
+            <div class="bg-surface-container rounded-lg overflow-hidden">
+              <button type="button" onclick="toggleAccordion('acc-1')" class="w-full p-space-md flex justify-between items-center text-left hover:bg-surface-container-high transition-colors">
+                <span class="font-label-md text-label-md font-semibold text-on-surface">01 / Minetti Bioenergetics Model &amp; Polynomial Derivation</span>
+                <span id="acc-1-icon" class="material-symbols-outlined text-outline">expand_more</span>
+              </button>
+              <div id="acc-1" class="hidden p-space-md pt-0 font-body-sm text-body-sm text-on-surface-variant flex flex-col gap-space-xs">
+                <p>Alberto E. Minetti et al. (2002), "Energy cost of walking and running at extreme slopes." The 5th-order empirical equation calculates metabolic cost C in J/(kg·m):</p>
+                <div class="p-space-sm bg-surface-container-low rounded font-code-sm text-code-sm text-primary">
+                  C_norm(i) = 280.5·i⁵ - 58.7·i⁴ - 76.8·i³ + 26.8·i² + 19.6·i + 2.5
+                </div>
+              </div>
+            </div>
+            <!-- Accordion 02 -->
+            <div class="bg-surface-container rounded-lg overflow-hidden">
+              <button type="button" onclick="toggleAccordion('acc-2')" class="w-full p-space-md flex justify-between items-center text-left hover:bg-surface-container-high transition-colors">
+                <span class="font-label-md text-label-md font-semibold text-on-surface">02 / Tobler Mars Traversal Speed Bounds</span>
+                <span id="acc-2-icon" class="material-symbols-outlined text-outline">expand_more</span>
+              </button>
+              <div id="acc-2" class="hidden p-space-md pt-0 font-body-sm text-body-sm text-on-surface-variant flex flex-col gap-space-xs">
+                <p>Based on Waldo Tobler's 1993 hiking function, scaled for EVA suit locomotion: v(i) = v_flat · exp(-3.5 · |i + 0.05|).</p>
+              </div>
+            </div>
+            <!-- Accordion 03 -->
+            <div class="bg-surface-container rounded-lg overflow-hidden">
+              <button type="button" onclick="toggleAccordion('acc-3')" class="w-full p-space-md flex justify-between items-center text-left hover:bg-surface-container-high transition-colors">
+                <span class="font-label-md text-label-md font-semibold text-on-surface">03 / IAU Mars Planetary Coordinate System</span>
+                <span id="acc-3-icon" class="material-symbols-outlined text-outline">expand_more</span>
+              </button>
+              <div id="acc-3" class="hidden p-space-md pt-0 font-body-sm text-body-sm text-on-surface-variant flex flex-col gap-space-xs">
+                <p>Mapped using IAU Mars volumetric mean radius: R_Mars = 3,389,500 m.</p>
+              </div>
+            </div>
+            <!-- Accordion 04 -->
+            <div class="bg-surface-container rounded-lg overflow-hidden">
+              <button type="button" onclick="toggleAccordion('acc-4')" class="w-full p-space-md flex justify-between items-center text-left hover:bg-surface-container-high transition-colors">
+                <span class="font-label-md text-label-md font-semibold text-on-surface">04 / DEM Resolution &amp; GeoTIFF Sampling</span>
+                <span id="acc-4-icon" class="material-symbols-outlined text-outline">expand_more</span>
+              </button>
+              <div id="acc-4" class="hidden p-space-md pt-0 font-body-sm text-body-sm text-on-surface-variant flex flex-col gap-space-xs">
+                <p>38.4m/px MOLA/HRSC blended elevation GeoTIFF rasters with bilinear interpolation.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </section>
 
     <!-- ================================================================= -->
@@ -1288,5 +1995,87 @@
       }
     });
   </script>
+
+  <!-- Interactive How-It-Works Physics Lab Script -->
+  <script>
+    const pipelineData = {
+      1: { tag: "STAGE 01: TERRAIN DATA", sub: "INGESTION COMPLETE", title: "NASA MOLA & HRSC Elevation Ingestion", desc: "Imports 38.4m/pixel Digital Elevation Models from Mars Express HRSC and Mars Global Surveyor MOLA datasets.", dim: "512 × 512 cells", bound: "Jezero Floor to Delta", elev: "-2,580 m / -2,490 m", prec: "float32 (Rasterio)" },
+      2: { tag: "STAGE 02: TERRAIN ANALYSIS", sub: "VECTOR ANALYSIS READY", title: "Gradient dz/dx, Slope Angle θ & Aspect ϕ", desc: "Computes 2D spatial derivatives using Sobel-Feldman convolution filters.", dim: "Gradient Tensors", bound: "8-Neighbor Matrix", elev: "Max Slope: 28.4°", prec: "Sobel-Feldman 3x3" },
+      3: { tag: "STAGE 03: PHYSICS MODEL", sub: "BIOMECHANICS ONLINE", title: "0.378g Minetti 5th-Order Model Calibration", desc: "Applies 0.378 Mars gravity scaling and a 1.35x metabolic multiplier for rigid xEMU pressure suit joint resistance.", dim: "220 kg EVA Mass", bound: "150 J/m Floor Cost", elev: "Optimal: -5.7°", prec: "5th-order Polynomial" },
+      4: { tag: "STAGE 04: ROUTE ENGINE", sub: "A* GRAPH TRAVERSAL", title: "Weighted Heuristic Graph Search", desc: "Calculates cost-weighted path across 8-connected grid nodes using Euclidean distance heuristics.", dim: "Nodes: 262,144", bound: "Octile Connectivity", elev: "Pruned: >15° Walls", prec: "Priority Queue Heap" },
+      5: { tag: "STAGE 05: TELEMETRY SYNTHESIS", sub: "PLSS BOUNDS OK", title: "Oxygen, Joules & Walkback Buffer Verification", desc: "Translates integrated mechanical energy into physiological oxygen consumption.", dim: "840 L PLSS O₂", bound: "PoNR 50% Reserve", elev: "Burn: ~1.4 L/km", prec: "Metabolic Integrator" },
+      6: { tag: "STAGE 06: GO / NO-GO", sub: "FLIGHT DIRECTOR APPROVED", title: "Safety Envelope Mission Dispatch", desc: "Final programmatic verification ensuring slopes remain under 15° and comms line-of-sight exceeds 95%.", dim: "GO FOR EVA", bound: "Margin: 99.4%", elev: "No Barriers Hit", prec: "Flight Rule 14-B" }
+    };
+
+    function switchPipelineStage(idx) {
+      document.querySelectorAll('.pipeline-tab').forEach(b => { b.classList.remove('active', 'bg-surface-container-high'); b.classList.add('bg-transparent'); });
+      const curBtn = document.getElementById('step-btn-' + idx);
+      if(curBtn) { curBtn.classList.add('active', 'bg-surface-container-high'); curBtn.classList.remove('bg-transparent'); }
+      const d = pipelineData[idx];
+      if (!d) return;
+      document.getElementById('detail-tag').innerText = d.tag;
+      document.getElementById('detail-sub').innerText = d.sub;
+      document.getElementById('detail-title').innerText = d.title;
+      document.getElementById('detail-desc').innerText = d.desc;
+      document.getElementById('reg-dim').innerText = d.dim;
+      document.getElementById('reg-bound').innerText = d.bound;
+      document.getElementById('reg-elev').innerText = d.elev;
+      document.getElementById('reg-prec').innerText = d.prec;
+    }
+
+    function toggleMapLayer(layer) {
+      document.querySelectorAll('[id^="btn-layer-"]').forEach(b => { b.classList.remove('bg-primary-container', 'text-on-primary-container'); b.classList.add('bg-surface-container-high', 'text-on-surface'); });
+      const btn = document.getElementById('btn-layer-' + layer);
+      if(btn) { btn.classList.add('bg-primary-container', 'text-on-primary-container'); btn.classList.remove('bg-surface-container-high', 'text-on-surface'); }
+      const nameEl = document.getElementById('map-active-layer-name');
+      if (nameEl) nameEl.innerText = layer.toUpperCase() + " LAYER";
+    }
+
+    function calculateMinetti() {
+      const slopeEl = document.getElementById('input-slope');
+      const massEl = document.getElementById('input-mass');
+      const rigEl = document.getElementById('input-rigidity');
+      if (!slopeEl || !massEl || !rigEl) return;
+      const slopeDeg = parseFloat(slopeEl.value);
+      const mass = parseFloat(massEl.value);
+      const rigidity = parseFloat(rigEl.value);
+
+      document.getElementById('val-slope').innerText = slopeDeg.toFixed(1) + "°";
+      document.getElementById('val-mass').innerText = mass + " kg";
+      document.getElementById('val-rigidity').innerText = rigidity.toFixed(2) + "×";
+
+      const rad = slopeDeg * (Math.PI / 180);
+      const i = Math.tan(rad);
+      const C_norm = (280.5 * Math.pow(i, 5)) - (58.7 * Math.pow(i, 4)) - (76.8 * Math.pow(i, 3)) + (26.8 * Math.pow(i, 2)) + (19.6 * i) + 2.5;
+      let costPerMeter = mass * C_norm * 0.378 * rigidity;
+      if (costPerMeter < 150) costPerMeter = 150;
+
+      const total1km_kJ = (costPerMeter * 1000) / 1000;
+      const kcalPerKm = total1km_kJ / 4.184;
+      const o2PerKm = (total1km_kJ / 20.1) * 0.1;
+
+      document.getElementById('out-jm').innerText = Math.round(costPerMeter) + " J/m";
+      document.getElementById('out-kj').innerText = Math.round(total1km_kJ) + " kJ";
+      document.getElementById('out-kcal').innerText = Math.round(kcalPerKm) + " kcal/km";
+      document.getElementById('out-o2').innerText = o2PerKm.toFixed(1) + " L/km";
+
+      const mappedX = ((slopeDeg + 20) / 45) * 400;
+      const marker = document.getElementById('curve-marker');
+      if(marker) marker.setAttribute('cx', Math.max(10, Math.min(390, mappedX)));
+    }
+
+    function toggleAccordion(id) {
+      const el = document.getElementById(id);
+      const icon = document.getElementById(id + '-icon');
+      if(el && el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if(icon) icon.innerText = "expand_less";
+      } else if (el) {
+        el.classList.add('hidden');
+        if(icon) icon.innerText = "expand_more";
+      }
+    }
+  </script>
+
 </body>
 </html>
