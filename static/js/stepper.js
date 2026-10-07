@@ -115,17 +115,17 @@ export function goToStep(stepNumber) {
     const label = btn.querySelector('.step-label');
 
     if (bStep === stepNumber) {
-      btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition-all";
-      if (circle) circle.className = "step-circle w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]";
-      if (label) label.className = "step-label font-bold";
+      btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-primary-container text-on-primary-container border border-white/30 shadow-[0_0_12px_rgba(209,116,210,0.4)] transition-all";
+      if (circle) circle.className = "step-circle w-5 h-5 rounded-full bg-void-plum text-orchid font-extrabold flex items-center justify-center text-[10px]";
+      if (label) label.className = "step-label font-bold tracking-wide uppercase";
     } else if (bStep < stepNumber) {
-      btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all";
-      if (circle) circle.className = "step-circle w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]";
+      btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-400 hover:bg-surface-container-high transition-all";
+      if (circle) circle.className = "step-circle w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center justify-center text-[10px]";
       if (label) label.className = "step-label hidden sm:inline";
     } else {
-      btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all";
-      if (circle) circle.className = "step-circle w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center justify-center text-[10px]";
-      if (label) label.className = "step-label hidden sm:inline text-gray-400";
+      btn.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-outline hover:bg-surface-container-high transition-all";
+      if (circle) circle.className = "step-circle w-5 h-5 rounded-full bg-surface-container-high text-outline flex items-center justify-center text-[10px]";
+      if (label) label.className = "step-label hidden sm:inline text-outline";
     }
   });
 
@@ -297,9 +297,9 @@ function setActiveStrategyMode(mode) {
   document.querySelectorAll('[data-strategy-mode]').forEach(btn => {
     const bMode = btn.getAttribute('data-strategy-mode');
     if (bMode === mode) {
-      btn.className = "p-2 rounded-xl border border-blue-500 bg-blue-50/80 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-bold text-center text-xs transition-all";
+      btn.className = "priority-btn p-2 rounded-xl border border-primary/50 bg-primary-container text-on-primary-container font-bold text-center text-xs shadow-[0_0_12px_rgba(209,116,210,0.4)] transition-all";
     } else {
-      btn.className = "p-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0F17] hover:bg-gray-50 text-gray-700 dark:text-gray-300 text-center text-xs transition-all";
+      btn.className = "priority-btn p-2 rounded-xl border border-white/10 bg-surface-container-low/60 hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface text-center text-xs transition-all";
     }
   });
 
@@ -334,7 +334,7 @@ export async function executeRouteCalculation() {
   calcBtn.disabled = true;
   calcBtn.innerHTML = `
     <i class="fa-solid fa-spinner fa-spin text-sm"></i>
-    <span>Computing Minetti A* Traversal...</span>
+    <span>Computing Minetti Traversal...</span>
   `;
 
   try {
@@ -372,16 +372,16 @@ export async function executeRouteCalculation() {
     console.error("Calculation failure:", err);
     if (errorContainer) {
       errorContainer.innerHTML = `
-        <div class="p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-xs text-red-800 dark:text-red-200 flex items-start justify-between gap-3">
+        <div class="p-4 rounded-2xl bg-coral/20 border border-coral/60 text-xs text-on-surface flex items-start justify-between gap-3 shadow-lg">
           <div class="flex items-start gap-2.5">
-            <i class="fa-solid fa-triangle-exclamation text-red-500 text-sm mt-0.5"></i>
+            <span class="material-symbols-outlined text-coral text-sm mt-0.5">warning</span>
             <div>
-              <span class="font-bold font-mono uppercase block text-[10px]">Calculation Error</span>
-              <p class="leading-relaxed mt-0.5">${err.message}</p>
+              <span class="font-bold font-mono uppercase block text-[10px] text-coral">Calculation Error</span>
+              <p class="leading-relaxed mt-0.5 text-on-surface-variant">${err.message}</p>
             </div>
           </div>
-          <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 p-1">
-            <i class="fa-solid fa-xmark"></i>
+          <button type="button" onclick="this.parentElement.remove()" class="text-outline hover:text-on-surface p-1">
+            <span class="material-symbols-outlined text-xs">close</span>
           </button>
         </div>
       `;
@@ -449,28 +449,28 @@ function renderRouteResults(routeObj, stats, briefing) {
   const isExceeded = stats.exceeds_o2_capacity || stats.exceeds_max_duration || (maxSlope > maxSlopeLimit);
 
   if (isExceeded) {
-    statusBadge.className = "p-4 rounded-2xl border border-amber-300 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-950/40 text-xs flex items-center justify-between";
+    statusBadge.className = "p-4 rounded-2xl border border-coral/60 bg-coral/15 text-xs flex items-center justify-between shadow-lg";
     statusBadge.innerHTML = `
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold">⚠️</div>
+        <div class="w-8 h-8 rounded-full bg-coral text-void-plum flex items-center justify-center font-extrabold text-sm">⚠️</div>
         <div>
-          <span class="font-bold text-amber-900 dark:text-amber-100 uppercase tracking-wider font-mono text-[11px] block">Flight Director Status: CAUTION</span>
-          <span class="text-amber-700 dark:text-amber-300">Route exceeds safety slope or PLSS consumable bounds.</span>
+          <span class="font-bold text-coral uppercase tracking-wider font-mono text-[11px] block">Flight Director Status: CAUTION / NO-GO</span>
+          <span class="text-on-surface-variant">Route exceeds safety slope or PLSS consumable bounds.</span>
         </div>
       </div>
-      <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-200 text-amber-900">CAUTION</span>
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-coral text-void-plum uppercase">NO-GO</span>
     `;
   } else {
-    statusBadge.className = "p-4 rounded-2xl border border-emerald-300 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-950/40 text-xs flex items-center justify-between";
+    statusBadge.className = "p-4 rounded-2xl border border-emerald-500/50 bg-emerald-500/15 text-xs flex items-center justify-between shadow-lg";
     statusBadge.innerHTML = `
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold">✓</div>
+        <div class="w-8 h-8 rounded-full bg-emerald-500 text-void-plum flex items-center justify-center font-extrabold text-sm">✓</div>
         <div>
-          <span class="font-bold text-emerald-900 dark:text-emerald-100 uppercase tracking-wider font-mono text-[11px] block">Flight Director Status: GO</span>
-          <span class="text-emerald-700 dark:text-emerald-300">All physiological constraints within nominal EVA margin.</span>
+          <span class="font-bold text-emerald-400 uppercase tracking-wider font-mono text-[11px] block">Flight Director Status: GO</span>
+          <span class="text-on-surface-variant">All physiological constraints within nominal EVA margin.</span>
         </div>
       </div>
-      <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900">GO FOR EVA</span>
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500 text-void-plum uppercase">GO FOR EVA</span>
     `;
   }
 
@@ -491,26 +491,31 @@ async function loadRecentRoutesList() {
   try {
     const routes = await getCachedRoutes();
     if (!routes || !routes.length) {
-      container.innerHTML = `<p class="text-xs text-gray-400 italic p-2">No past EVA routes cached yet.</p>`;
+      container.innerHTML = `<p class="text-xs text-outline italic p-2">No past EVA routes cached yet.</p>`;
       return;
     }
 
     container.innerHTML = routes.map(r => `
-      <div data-load-cached-id="${r.id}" class="p-3 rounded-xl bg-gray-50 dark:bg-[#0B0F17] hover:bg-blue-50 dark:hover:bg-blue-950/30 border border-gray-100 dark:border-gray-800 cursor-pointer transition-colors flex items-center justify-between gap-3 group">
-        <div>
-          <div class="font-bold text-xs text-gray-800 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-            ${r.name}
+      <tr data-load-cached-id="${r.id}" class="hover:bg-surface-container-high/60 cursor-pointer transition-colors group">
+        <td class="py-3 px-4 font-bold text-xs text-on-surface group-hover:text-primary transition-colors">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            <span>${r.name}</span>
           </div>
-          <div class="text-[10px] text-gray-500 font-mono mt-0.5">
-            ${Math.round(r.distance)} m • ${r.max_slope}° max slope • ${(r.duration * 60).toFixed(0)} min
-          </div>
-        </div>
-        <button type="button" class="text-xs text-blue-600 dark:text-blue-400 font-mono font-semibold flex items-center gap-1">
-          <span>Reload</span>
-          <i class="fa-solid fa-arrow-rotate-right text-[10px]"></i>
-        </button>
-      </div>
+        </td>
+        <td class="py-3 px-4 text-xs text-on-surface-variant font-mono">Jezero Sector Alpha</td>
+        <td class="py-3 px-4 text-xs font-mono font-bold text-on-surface text-right">${Math.round(r.distance).toLocaleString()} m</td>
+        <td class="py-3 px-4 text-xs font-mono text-secondary">${r.max_slope}° max slope • ${(r.duration * 60).toFixed(0)} min</td>
+        <td class="py-3 px-4 text-xs">
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NOMINAL</span>
+        </td>
+        <td class="py-3 px-4 text-right">
+          <button type="button" class="px-3 py-1 rounded-lg bg-surface-container-highest text-primary hover:bg-primary hover:text-on-primary font-mono text-xs font-bold transition-all inline-flex items-center gap-1">
+            <span>RELOAD</span>
+            <i class="fa-solid fa-arrow-rotate-right text-[10px]"></i>
+          </button>
+        </td>
+      </tr>
     `).join('');
 
     // Attach click listeners to reload any cached route

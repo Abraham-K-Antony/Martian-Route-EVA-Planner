@@ -114,23 +114,23 @@ async function checkServerHealth() {
     const res = await fetch('/api/presets', { method: 'GET', signal: AbortSignal.timeout(6000) });
     if (res.ok) {
       badge.innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span>ONLINE</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-bold tracking-wider text-emerald-400">NOMINAL [99.8%]</span>
       `;
-      badge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50";
+      badge.className = "hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 backdrop-blur-md shadow-sm";
       badge.title = "Mission Server Online & Ready";
     } else {
       throw new Error(`Status ${res.status}`);
     }
   } catch (err) {
     badge.innerHTML = `
-      <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-      <span>WAKING UP SERVER...</span>
+      <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+      <span class="font-bold tracking-wider text-amber-300">WAKING UP SERVER...</span>
     `;
-    badge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50";
+    badge.className = "hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium bg-amber-500/15 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-sm";
     badge.title = "Waking up cloud mission server from cold standby...";
 
-    // Retry once after 3 seconds
+    // Retry once after 3.5 seconds
     setTimeout(checkServerHealth, 3500);
   }
 }
