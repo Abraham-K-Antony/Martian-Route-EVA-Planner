@@ -1,14 +1,18 @@
 import math
-import time
 import heapq
 import numpy as np
 from typing import Tuple, Dict, List, Optional
-from core.config import (
-    MARS_RADIUS_M, G_MARS, G_EARTH, GRAVITY_RATIO,
-    M_TOTAL_KG, SUIT_RESTRICTION_FACTOR, MINETTI_MAX_GRADE, MINETTI_MIN_GRADE
-)
-from core.terrain_processor import DEMProcessor
+from core.terrain_processor import DEMProcessor, MARS_RADIUS_M
 from core.eva_safety import EVASafetyAnalyzer
+
+# Physical Astronaut & xEMU Suit Parameters
+M_ASTRONAUT_KG = 80.0
+M_SUIT_KG = 140.0
+M_TOTAL_KG = M_ASTRONAUT_KG + M_SUIT_KG  # 220 kg combined mass
+G_MARS = 3.71  # m/s^2
+G_EARTH = 9.81
+GRAVITY_RATIO = G_MARS / G_EARTH  # ~0.378
+SUIT_RESTRICTION_FACTOR = 1.35   # Suit rigidity energy multiplier
 
 class MartianPathfinder:
     """
@@ -27,9 +31,7 @@ class MartianPathfinder:
         Minetti metabolic walking cost function [Joules / meter] adapted for Mars gravity & xEMU suit.
         C(i) = M_total * (280.5 i^5 - 58.7 i^4 - 76.8 i^3 + 26.8 i^2 + 19.6 i + 2.5) * (g_mars/g_earth) * suit_factor
         """
-        # Clamp grade i to Minetti (2002) validity bounds [-0.45, 0.45] (~24.2 deg max incline)
-        i = max(MINETTI_MIN_GRADE, min(MINETTI_MAX_GRADE, float(grade)))
-        
+        i = grade  # tan(slope)
         # Minetti polynomial for specific energy cost in J/(kg*m)
         j_per_kg_m = (280.5 * (i**5) - 58.7 * (i**4) - 76.8 * (i**3) + 26.8 * (i**2) + 19.6 * i + 2.5)
         j_per_kg_m = max(1.2, j_per_kg_m)  # Floor minimum cost per kg*m
@@ -100,36 +102,22 @@ class MartianPathfinder:
             return dist_m * min_unit_cost
 
         # Precompute 2D comms coverage grid if mode is comms_safe
-        # Precompute 2D comms coverage grid if mode is comms_safe (sampled at 5px resolution for speed)
         comms_grid = None
         if mode == "comms_safe":
             comms_grid = np.ones((rows, cols), dtype=np.float32)
-            step_stride = max(3, min(rows, cols) // 50)
-            for r_idx in range(0, rows, step_stride):
-                for c_idx in range(0, cols, step_stride):
+            for r_idx in range(0, rows, 2):
+                for c_idx in range(0, cols, 2):
                     n_lat, n_lon = self.dem.rowcol_to_latlon(min_r + r_idx, min_c + c_idx)
                     has_rf, _ = self.safety_analyzer.check_multi_relay_los(n_lat, n_lon, float(elev_grid[r_idx, c_idx]))
                     mult = 1.0 if has_rf else 6.0
-                    comms_grid[r_idx:min(rows, r_idx+step_stride), c_idx:min(cols, c_idx+step_stride)] = mult
+                    comms_grid[r_idx:min(rows, r_idx+2), c_idx:min(cols, c_idx+2)] = mult
 
         pq = []
         heapq.heappush(pq, (0.0, start_node[0], start_node[1]))
         g_score = {start_node: 0.0}
         came_from = {}
         
-        # Budget Caps
-        MAX_NODE_EXPANSIONS = 150_000
-        MAX_WALL_CLOCK_SEC = 8.0
-        start_time = time.perf_counter()
-        node_expansions = 0
-
         while pq:
-            node_expansions += 1
-            if node_expansions > MAX_NODE_EXPANSIONS:
-                raise ValueError(f"Pathfinding exceeded maximum search node expansion cap ({MAX_NODE_EXPANSIONS:,} nodes). Please decrease search distance or select closer waypoints.")
-            if (node_expansions % 2000 == 0) and (time.perf_counter() - start_time > MAX_WALL_CLOCK_SEC):
-                raise ValueError(f"Pathfinding search exceeded time budget limit ({MAX_WALL_CLOCK_SEC:.1f}s). Please adjust search constraints or shorten distance.")
-
             current_f, r, c = heapq.heappop(pq)
             current = (r, c)
             

@@ -13,8 +13,8 @@ export function initElevationChart() {
 
   const ctx = canvas.getContext('2d');
   const isDark = document.documentElement.classList.contains('dark');
-  const gridColor = 'rgba(255, 255, 255, 0.08)';
-  const textColor = '#D8CCDD';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+  const textColor = isDark ? '#9CA3AF' : '#6B7280';
 
   if (chartInstance) {
     chartInstance.destroy();
@@ -26,17 +26,17 @@ export function initElevationChart() {
       labels: [],
       datasets: [
         {
-          label: 'Elevation (m MSL)',
+          label: 'Elevation (m)',
           data: [],
-          borderColor: '#D174D2',
-          backgroundColor: 'rgba(209, 116, 210, 0.18)',
-          borderWidth: 2.5,
+          borderColor: '#2563EB',
+          backgroundColor: isDark ? 'rgba(37, 99, 235, 0.15)' : 'rgba(37, 99, 235, 0.08)',
+          borderWidth: 2,
           fill: true,
           tension: 0.25,
           yAxisID: 'yElevation',
           pointRadius: 0,
-          pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#D174D2'
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#2563EB'
         },
         {
           label: 'Slope (°)',
@@ -48,7 +48,7 @@ export function initElevationChart() {
           tension: 0.2,
           yAxisID: 'ySlope',
           pointRadius: 0,
-          pointHoverRadius: 6,
+          pointHoverRadius: 5,
           pointHoverBackgroundColor: '#F59E0B'
         }
       ]
@@ -81,10 +81,10 @@ export function initElevationChart() {
           }
         },
         tooltip: {
-          backgroundColor: 'rgba(32, 5, 51, 0.95)',
-          titleColor: '#F7F4FA',
-          bodyColor: '#D8CCDD',
-          borderColor: 'rgba(255, 255, 255, 0.18)',
+          backgroundColor: isDark ? 'rgba(19, 27, 46, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          titleColor: isDark ? '#F9FAFB' : '#111827',
+          bodyColor: isDark ? '#D1D5DB' : '#374151',
+          borderColor: isDark ? '#23314E' : '#E5E7EB',
           borderWidth: 1,
           padding: 10,
           boxPadding: 4,
@@ -117,7 +117,7 @@ export function initElevationChart() {
           position: 'left',
           grid: { color: gridColor },
           ticks: {
-            color: '#D174D2',
+            color: textColor,
             font: { family: 'JetBrains Mono', size: 9 },
             callback: (v) => `${v}m`
           },

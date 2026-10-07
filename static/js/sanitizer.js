@@ -1,39 +1,81 @@
 /**
- * Martian Route & EVA Planner - DOMPurify Sanitizer Integration
- * Uses industry-standard DOMPurify for strict XSS prevention.
+ * Martian Route & EVA Planner - HTML & Markdown Sanitizer
+ * Strips dangerous HTML tags, attributes, and scripts to prevent XSS vulnerabilities.
  */
 
 export function sanitizeHtml(rawHtml) {
   if (!rawHtml) return '';
-  if (typeof window.DOMPurify !== 'undefined' && window.DOMPurify.sanitize) {
-    return window.DOMPurify.sanitize(rawHtml, {
-      ALLOWED_TAGS: [
-        'p', 'br', 'b', 'i', 'em', 'strong', 'u', 's', 'strike',
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'hr',
-        'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div', 'mark'
-      ],
-      ALLOWED_ATTR: ['class', 'id', 'align'],
-      FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'style'],
-      FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'svg']
-    });
+
+  const temp = document.createElement('template');
+  temp.innerHTML = rawHtml;
+  const content = temp.content;
+
+  // List of allowed tags for rich mission briefings
+  const allowedTags = new Set([
+    'p', 'br', 'b', 'i', 'em', 'strong', 'u', 's', 'strike',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'hr',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span', 'div', 'mark'
+  ]);
+
+  // Recursively sanitize DOM nodes
+  function cleanNode(node) {
+    const children = Array.from(node.childNodes);
+    for (const child of children) {
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        const tagName = child.tagName.toLowerCase();
+
+        // Remove disallowed elements completely
+        if (!allowedTags.has(tagName)) {
+          // Replace tag with text content safely
+          const text = document.createTextNode(child.textContent);
+          node.replaceChild(text, child);
+          continue;
+        }
+
+        // Clean attributes: remove on* event handlers, javascript: hrefs, style tags
+        const attrs = Array.from(child.attributes);
+        for (const attr of attrs) {
+          const attrName = attr.name.toLowerCase();
+          const attrVal = attr.value.trim().toLowerCase();
+
+          if (
+            attrName.startsWith('on') ||
+            attrName === 'style' ||
+            attrVal.startsWith('javascript:') ||
+            attrVal.startsWith('data:') ||
+            attrVal.startsWith('vbscript:')
+          ) {
+            child.removeAttribute(attr.name);
+          }
+        }
+
+        cleanNode(child);
+      }
+    }
   }
-  
-  // Safe textContent fallback if DOMPurify is loading
-  const temp = document.createElement('div');
-  temp.textContent = rawHtml;
-  return temp.innerHTML;
+
+  cleanNode(content);
+  const container = document.createElement('div');
+  container.appendChild(content);
+  return container.innerHTML;
 }
 
 export function parseAndSanitizeMarkdown(markdownText) {
   if (!markdownText) return '';
-  let rawHtml = markdownText;
   if (typeof window.marked !== 'undefined' && window.marked.parse) {
     try {
-      rawHtml = window.marked.parse(markdownText);
+      const rawHtml = window.marked.parse(markdownText);
+      return sanitizeHtml(rawHtml);
     } catch (e) {
-      console.warn("Markdown parsing error:", e);
+      console.warn("Markdown parsing error, using plain text fallback:", e);
     }
   }
-  return sanitizeHtml(rawHtml);
+
+  // Fallback simple line-break formatter if marked is not yet loaded
+  const escaped = markdownText
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return `<p class="whitespace-pre-line leading-relaxed">${escaped}</p>`;
 }

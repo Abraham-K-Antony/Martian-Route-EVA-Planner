@@ -13,7 +13,7 @@ export function initTheme() {
   const savedTheme = localStorage.getItem(THEME_KEY);
   const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-  const activeTheme = savedTheme ? savedTheme : 'dark';
+  const activeTheme = savedTheme ? savedTheme : (systemPrefersDark ? 'dark' : 'light');
   applyTheme(activeTheme);
 
   // Attach event listeners

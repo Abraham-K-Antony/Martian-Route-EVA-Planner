@@ -7,7 +7,6 @@ const ROUTES = {
   '/': { title: 'Martian Route & EVA Planner — Jezero Crater Traversal Engine', viewId: 'view-home' },
   '/home': { title: 'Martian Route & EVA Planner — Jezero Crater Traversal Engine', viewId: 'view-home' },
   '/planner': { title: 'EVA Mission Planner — Jezero Crater | Martian Route', viewId: 'view-planner' },
-  '/route-analysis': { title: 'Route Analysis & Heuristics | Martian Route', viewId: 'view-route-analysis' },
   '/how-it-works': { title: 'How It Works — Terrain Models & Cost Functions | Martian Route', viewId: 'view-how-it-works' },
   '/mission-sites': { title: 'Mission Sites & Waypoints — Jezero Crater | Martian Route', viewId: 'view-mission-sites' },
   '/about': { title: 'About the Project & Team | Martian Route & EVA Planner', viewId: 'view-about' },
@@ -123,15 +122,15 @@ export function resolveRoute(explicitPath = null) {
     
     if (link.classList.contains('nav-desktop-link')) {
       if (isMatch) {
-        link.className = 'nav-desktop-link px-space-sm py-1.5 rounded-lg bg-primary-container/20 text-primary font-bold text-body-sm tracking-wide transition-all';
+        link.className = 'nav-desktop-link text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 transition-colors';
       } else {
-        link.className = 'nav-desktop-link px-space-sm py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high font-body-sm text-body-sm tracking-wide transition-all';
+        link.className = 'nav-desktop-link text-xs font-medium px-3 py-1.5 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800/60 transition-colors';
       }
     } else if (link.classList.contains('nav-mobile-link')) {
       if (isMatch) {
-        link.className = 'nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-container/20 text-primary font-bold text-sm transition-colors';
+        link.className = 'nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 font-semibold text-sm transition-colors';
       } else {
-        link.className = 'nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface hover:bg-surface-container-high font-medium text-sm transition-colors';
+        link.className = 'nav-mobile-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 font-medium text-sm transition-colors';
       }
     }
   });

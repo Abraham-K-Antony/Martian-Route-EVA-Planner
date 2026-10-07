@@ -4,8 +4,6 @@
  * and user-friendly error formatting.
  */
 
-import { getStoredApiKey } from './state.js';
-
 let activeCalculateController = null;
 
 /**
@@ -56,20 +54,13 @@ export async function calculateRoute(payload) {
   activeCalculateController = new AbortController();
   const signal = activeCalculateController.signal;
 
-  const apiKey = getStoredApiKey();
-  const headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  };
-
-  if (apiKey) {
-    headers['X-Gemini-Key'] = apiKey;
-  }
-
   try {
     const response = await fetch('/api/route/calculate', {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify(payload),
       signal
     });
@@ -89,37 +80,6 @@ export async function calculateRoute(payload) {
     throw err;
   } finally {
     activeCalculateController = null;
-  }
-}
-
-/**
- * Fetches AI Flight Director Mission Briefing from /api/briefing
- */
-export async function fetchAiBriefing(statsPayload) {
-  const apiKey = getStoredApiKey();
-  const headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  };
-
-  if (apiKey) {
-    headers['X-Gemini-Key'] = apiKey;
-  }
-
-  try {
-    const response = await fetch('/api/briefing', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(statsPayload),
-      signal: AbortSignal.timeout(15000)
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.briefing || null;
-  } catch (e) {
-    console.warn("Async AI briefing fetch error:", e);
-    return null;
   }
 }
 

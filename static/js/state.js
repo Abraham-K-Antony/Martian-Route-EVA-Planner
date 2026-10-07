@@ -7,9 +7,7 @@ const STORAGE_KEYS = {
   CONSTRAINTS: 'martian_eva_constraints',
   API_KEY: 'mars_user_gemini_api_key',
   LAST_ROUTE: 'martian_last_route_id',
-  SELECTED_PRESET: 'martian_selected_start_preset',
-  MISSION_POINTS: 'martian_mission_points',
-  ACTIVE_STEP: 'martian_active_step'
+  SELECTED_PRESET: 'martian_selected_start_preset'
 };
 
 const DEFAULT_CONSTRAINTS = {
@@ -54,52 +52,6 @@ export function saveConstraints(constraints) {
 }
 
 /**
- * Stores selected start and end waypoint points
- */
-export function saveMissionPoints(points) {
-  try {
-    sessionStorage.setItem(STORAGE_KEYS.MISSION_POINTS, JSON.stringify(points));
-  } catch (err) {
-    console.warn("Error saving mission points:", err);
-  }
-}
-
-/**
- * Retrieves saved mission waypoint points
- */
-export function getSavedMissionPoints() {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEYS.MISSION_POINTS);
-    return raw ? JSON.parse(raw) : null;
-  } catch (err) {
-    return null;
-  }
-}
-
-/**
- * Stores current active planner step (1, 2, or 3)
- */
-export function saveActiveStep(step) {
-  try {
-    sessionStorage.setItem(STORAGE_KEYS.ACTIVE_STEP, String(step));
-  } catch (err) {
-    console.warn("Error saving active step:", err);
-  }
-}
-
-/**
- * Retrieves saved active step
- */
-export function getSavedActiveStep() {
-  try {
-    const step = sessionStorage.getItem(STORAGE_KEYS.ACTIVE_STEP);
-    return step ? parseInt(step, 10) : 1;
-  } catch (err) {
-    return 1;
-  }
-}
-
-/**
  * Stores a selected start preset for pre-populating the Planner
  */
 export function setSelectedStartPreset(preset) {
@@ -131,7 +83,7 @@ export function popSelectedStartPreset() {
  */
 export function getStoredApiKey() {
   try {
-    return sessionStorage.getItem(STORAGE_KEYS.API_KEY) || '';
+    return localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
   } catch (e) {
     return '';
   }
@@ -140,12 +92,11 @@ export function getStoredApiKey() {
 export function setStoredApiKey(key) {
   try {
     if (key) {
-      sessionStorage.setItem(STORAGE_KEYS.API_KEY, key.trim());
+      localStorage.setItem(STORAGE_KEYS.API_KEY, key.trim());
     } else {
-      sessionStorage.removeItem(STORAGE_KEYS.API_KEY);
+      localStorage.removeItem(STORAGE_KEYS.API_KEY);
     }
   } catch (e) {
-    console.warn("Error updating API key in sessionStorage:", e);
+    console.warn("Error updating API key:", e);
   }
 }
-

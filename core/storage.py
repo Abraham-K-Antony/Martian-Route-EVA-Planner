@@ -5,24 +5,11 @@ from typing import Dict, List, Optional, Tuple
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "waypoints.sqlite")
 
-def get_db_connection():
-    """Returns a SQLite connection configured with WAL mode, 10s timeout, and busy handler."""
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.execute("PRAGMA journal_mode = WAL;")
-    conn.execute("PRAGMA busy_timeout = 5000;")
-    conn.execute("PRAGMA synchronous = NORMAL;")
-    return conn
-
 def init_db():
-    """Ensure data directory exists, initialize SQLite schema, set PRAGMA user_version."""
-    with get_db_connection() as conn:
+    """Ensure data directory exists and initialize SQLite database schema."""
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        
-        # Schema Migration Versioning
-        cursor.execute("PRAGMA user_version;")
-        current_version = cursor.fetchone()[0]
-        
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS routes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,9 +38,6 @@ def init_db():
             )
         """)
         
-        if current_version < 1:
-            cursor.execute("PRAGMA user_version = 1;")
-        
         # Populate default Jezero Crater mission points if empty
         cursor.execute("SELECT COUNT(*) FROM waypoints")
         if cursor.fetchone()[0] == 0:
@@ -74,9 +58,9 @@ def init_db():
 
 def save_route(name: str, start: Tuple[float, float], end: Tuple[float, float], 
                stats: Dict, geojson: Dict, briefing: str) -> int:
-    """Cache a calculated EVA route and briefing into SQLite with automatic pruning."""
+    """Cache a calculated EVA route and briefing into SQLite."""
     init_db()
-    with get_db_connection() as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO routes (name, start_lat, start_lon, end_lat, end_lon, 
@@ -90,19 +74,13 @@ def save_route(name: str, start: Tuple[float, float], end: Tuple[float, float],
             json.dumps(geojson),
             briefing
         ))
-        
-        # Table Growth Pruning: keep at most 100 recent cached routes
-        cursor.execute("""
-            DELETE FROM routes 
-            WHERE id NOT IN (SELECT id FROM routes ORDER BY created_at DESC LIMIT 100)
-        """)
         conn.commit()
         return cursor.lastrowid
 
 def get_cached_routes(limit: int = 10) -> List[Dict]:
     """Retrieve recent cached EVA routes."""
     init_db()
-    with get_db_connection() as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT id, name, start_lat, start_lon, end_lat, end_lon, 
@@ -131,7 +109,7 @@ def get_cached_routes(limit: int = 10) -> List[Dict]:
 def get_preset_waypoints() -> List[Dict]:
     """Get predefined Jezero Crater waypoints."""
     init_db()
-    with get_db_connection() as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, label, category, lat, lon, elevation_m, description FROM waypoints")
         rows = cursor.fetchall()

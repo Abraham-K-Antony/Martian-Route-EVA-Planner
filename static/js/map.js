@@ -58,47 +58,11 @@ export function initMap(onPointChanged) {
     tileSize: 256
   }).addTo(mapInstance);
 
-  // 2. Secondary NASA MOLA Shaded Relief Layer (toggled via controls / fallback)
+  // 2. Secondary NASA MOLA Shaded Relief Layer (toggled via controls)
   const molaLayer = L.tileLayer(MARS_MOLA_TILES, {
     attribution: 'NASA/MOLA Science Team',
     maxZoom: 16,
-    opacity: 0.8
-  });
-
-  // Map Tile Loader & Fallback Overlay UI
-  let loaderOverlay = document.getElementById('mapTileLoader');
-  if (!loaderOverlay && mapContainer) {
-    loaderOverlay = document.createElement('div');
-    loaderOverlay.id = 'mapTileLoader';
-    loaderOverlay.className = 'absolute bottom-4 right-4 z-[1000] bg-surface-container-highest/90 text-on-surface text-[11px] font-mono px-3.5 py-2 rounded-xl border border-white/15 backdrop-blur-xl shadow-xl flex items-center gap-2 transition-opacity duration-300 pointer-events-none opacity-0';
-    loaderOverlay.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-orchid text-xs"></i> <span>Syncing Mars Basemap...</span>';
-    mapContainer.style.position = 'relative';
-    mapContainer.appendChild(loaderOverlay);
-  }
-
-  const showTileLoader = (msg) => {
-    if (loaderOverlay) {
-      if (msg) loaderOverlay.querySelector('span').textContent = msg;
-      loaderOverlay.classList.remove('opacity-0');
-    }
-  };
-
-  const hideTileLoader = () => {
-    if (loaderOverlay) loaderOverlay.classList.add('opacity-0');
-  };
-
-  let tileErrorCount = 0;
-  vikingLayer.on('tileloadstart', () => showTileLoader('Syncing Mars Orbital Imagery...'));
-  vikingLayer.on('load', () => hideTileLoader());
-  vikingLayer.on('tileerror', () => {
-    tileErrorCount++;
-    if (tileErrorCount >= 3) {
-      showTileLoader('Primary WMTS slow. Engaging MOLA Fallback...');
-      if (!mapInstance.hasLayer(molaLayer)) {
-        mapInstance.addLayer(molaLayer);
-      }
-      setTimeout(hideTileLoader, 3000);
-    }
+    opacity: 0.6
   });
 
   // Initialize Layer Groups

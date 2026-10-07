@@ -12,7 +12,7 @@ import { initAboutPage } from './pages/about.js';
 import { initContactPage } from './pages/contact.js';
 import { initMap, resizeMap } from './map.js';
 import { initElevationChart } from './chart.js';
-import { initPlannerWorkflow, executeRouteCalculation, updateCoordinateInputs } from './stepper.js';
+import { initPlannerWorkflow, executeRouteCalculation } from './stepper.js';
 
 console.log(
   "%c Martian Route & EVA Planner %c v2.1 Modular Engine by Abraham K Antony ",
@@ -26,19 +26,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize Design System & Theme Persistence
   initTheme();
 
-  // 2. Register Page Navigated Event Listener BEFORE Router initialization
+  // 2. Initialize Clean SPA Router
+  initRouter();
+
+  // 3. Register Page Navigated Event Listener
   window.addEventListener('pageNavigated', (e) => {
     const { path, viewId } = e.detail;
     handlePageViewActivation(path, viewId);
   });
 
-  // 3. Initialize Clean SPA Router (triggers initial resolveRoute and dispatches pageNavigated)
-  initRouter();
+  // 4. Initial Page Activation based on current URL
+  handlePageViewActivation(window.location.pathname, 'view-home');
 
-  // 4. Initialize Smooth Fade-Up on Scroll
+  // 5. Initialize Smooth Fade-Up on Scroll
   initScrollReveal();
 
-  // 5. Check Mission Server Health & Warm Up Free-Tier Backend
+  // 6. Check Mission Server Health & Warm Up Free-Tier Backend
   checkServerHealth();
 });
 
@@ -59,18 +62,16 @@ function initScrollReveal() {
 }
 
 function handlePageViewActivation(path, viewId) {
-  const targetPath = path || window.location.pathname;
-
-  if (targetPath === '/planner' || viewId === 'view-planner') {
-    activatePlannerView();
-  } else if (targetPath === '/mission-sites' || viewId === 'view-mission-sites') {
-    initMissionSitesPage();
-  } else if (targetPath === '/about' || viewId === 'view-about') {
-    initAboutPage();
-  } else if (targetPath === '/contact' || viewId === 'view-contact') {
-    initContactPage();
-  } else {
+  if (path === '/' || path === '/home' || viewId === 'view-home') {
     initHomePage();
+  } else if (path === '/planner' || viewId === 'view-planner') {
+    activatePlannerView();
+  } else if (path === '/mission-sites' || viewId === 'view-mission-sites') {
+    initMissionSitesPage();
+  } else if (path === '/about' || viewId === 'view-about') {
+    initAboutPage();
+  } else if (path === '/contact' || viewId === 'view-contact') {
+    initContactPage();
   }
   setTimeout(initScrollReveal, 100);
 }
@@ -82,7 +83,15 @@ async function activatePlannerView() {
   if (!isPlannerInitialized) {
     // Initialize Leaflet Map with callback on marker drag
     initMap((coords, shouldRecalculate) => {
-      updateCoordinateInputs(coords.startLat, coords.startLon, coords.endLat, coords.endLon);
+      const sLatEl = document.getElementById('coordStartLat');
+      const sLonEl = document.getElementById('coordStartLon');
+      const eLatEl = document.getElementById('coordEndLat');
+      const eLonEl = document.getElementById('coordEndLon');
+
+      if (sLatEl) sLatEl.value = coords.startLat.toFixed(4);
+      if (sLonEl) sLonEl.value = coords.startLon.toFixed(4);
+      if (eLatEl) eLatEl.value = coords.endLat.toFixed(4);
+      if (eLonEl) eLonEl.value = coords.endLon.toFixed(4);
 
       if (shouldRecalculate) {
         executeRouteCalculation();
@@ -113,23 +122,23 @@ async function checkServerHealth() {
     const res = await fetch('/api/presets', { method: 'GET', signal: AbortSignal.timeout(6000) });
     if (res.ok) {
       badge.innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="font-bold tracking-wider text-emerald-400">NOMINAL [99.8%]</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>ONLINE</span>
       `;
-      badge.className = "hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 backdrop-blur-md shadow-sm";
+      badge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50";
       badge.title = "Mission Server Online & Ready";
     } else {
       throw new Error(`Status ${res.status}`);
     }
   } catch (err) {
     badge.innerHTML = `
-      <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-      <span class="font-bold tracking-wider text-amber-300">WAKING UP SERVER...</span>
+      <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+      <span>WAKING UP SERVER...</span>
     `;
-    badge.className = "hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium bg-amber-500/15 text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-sm";
+    badge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50";
     badge.title = "Waking up cloud mission server from cold standby...";
 
-    // Retry once after 3.5 seconds
+    // Retry once after 3 seconds
     setTimeout(checkServerHealth, 3500);
   }
 }
