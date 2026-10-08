@@ -89,7 +89,7 @@ def generate_eva_briefing(stats: Dict, api_key: Optional[str] = None) -> str:
 """
 
     key = api_key or os.environ.get("GEMINI_API_KEY")
-    if not key or not key.strip():
+    if not key or not key.strip() or key.strip().lower() in ["null", "undefined", "none", ""]:
         return offline_briefing
 
     prompt = f"""

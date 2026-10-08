@@ -263,6 +263,8 @@ function setActiveStrategyMode(mode) {
     if (routeObj.geojson) {
       renderRouteResults(routeObj, routeObj.stats, currentBriefing);
       showToast(`Switched to ${mode.replace('_', ' ').toUpperCase()} route option`, "info", "ROUTE OPTION");
+    } else if (routeObj.error) {
+      showToast(`Strategy ${mode} unavailable: ${routeObj.error}`, "warning", "STRATEGY UNPASSABLE");
     }
   }
 }
@@ -310,9 +312,15 @@ export async function executeRouteCalculation() {
     currentMultiRoutes = result.multi_routes;
     currentBriefing = result.briefing || '';
     const recMode = result.recommended_mode || 'lowest_energy';
-    setActiveStrategyMode(recMode);
+    
+    // Respect user's selected strategy mode (e.g. legacy, fastest, safest, comms_safe) if valid in multi_routes
+    const targetMode = (constraints.routeMode && currentMultiRoutes[constraints.routeMode] && currentMultiRoutes[constraints.routeMode].geojson)
+      ? constraints.routeMode
+      : recMode;
 
-    const activeRoute = currentMultiRoutes[recMode] || result.route_data;
+    setActiveStrategyMode(targetMode);
+
+    const activeRoute = currentMultiRoutes[targetMode] || result.route_data;
     renderRouteResults(activeRoute, activeRoute.stats || result.path_stats, result.briefing);
 
     // Refresh Recent Routes list
